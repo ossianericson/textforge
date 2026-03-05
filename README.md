@@ -12,6 +12,13 @@
 Your domain expert writes the knowledge in plain text. The compiler encodes it once. It runs without them, forever.
 
 ---
+## Why this exists
+
+- Domain experts write knowledge in plain Markdown — no developer needed
+- Deterministic compiler — same spec always produces same HTML, no AI at runtime
+- Single self-contained HTML file — embed in Confluence, SharePoint, 
+  any wiki, any browser
+- Deep links, full-text search, keyboard navigation — production grade out of the box
 
 ## What It Looks Like
 
@@ -252,10 +259,7 @@ npm run compile:topic -- <topic>
 # 4. Review output in browser
 open output/<topic>-tree.html
 
-# 5. Copy to production folder
-cp output/<topic>-tree.html output/production/
-
-# 6. Upload production file to Confluence
+# 5. Deploy your HTML file to your platform of choice
 ```
 
 Review against [decision-tree.rules.md](decision-tree.rules.md) before promoting to production.
@@ -392,6 +396,10 @@ textforge is not just a decision tree tool. It is a demonstration of a reusable 
 The same pattern applies to any structured knowledge domain: compliance checklists, onboarding wizards, incident runbooks, training flows, quiz and study tools, architecture guidance. If a domain expert can describe the decisions or questions in plain text, the compiler can turn it into a production tool. The generator prompts in docs/generators/ make this accessible to anyone — describe your topic to any AI and get a compiler-ready spec back.
 
 ---
+## Author
+
+Built by [Ossian Ericson](https://www.linkedin.com/in/ossianericson) — 
+Cloud Architect with 25 years in enterprise infrastructure.
 
 ## License
 
