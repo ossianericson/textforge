@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{title}}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fff3dd;
+        --bg-strong: #ffe2b5;
+        --card: #ffffff;
+        --ink: #2d2a26;
+        --muted: #6b5f54;
+        --accent: #ff8b5a;
+        --accent-strong: #ff6a3d;
+        --secondary: #47b4a5;
+        --correct: #2e9d61;
+        --wrong: #d94b4b;
+        --shadow: 0 18px 36px rgba(47, 33, 15, 0.18);
+        --radius: 18px;
+        --transition: 220ms ease;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", "Gill Sans", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top, #fff5e8 0%, #ffe6c5 38%, #ffd7a4 100%);
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 24px clamp(18px, 3vw, 36px) 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .top-bar {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        align-items: center;
+        padding: 18px 20px;
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+      }
+
+      .title-block h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+        letter-spacing: 0.5px;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+
+      .score-block {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .score-text {
+        font-weight: 700;
+      }
+
+      .progress {
+        height: 10px;
+        background: #f4d3b1;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--secondary), #6fd6c2);
+        transition: width var(--transition);
+      }
+
+      .mode-toggle,
+      .view-toggle {
+        display: inline-flex;
+        gap: 8px;
+        background: #fff1df;
+        padding: 6px;
+        border-radius: 999px;
+      }
+
+      .mode-toggle button,
+      .view-toggle button {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: transparent;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--muted);
+        transition: var(--transition);
+      }
+
+      .mode-toggle button.active,
+      .view-toggle button.active {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 10px 18px rgba(255, 106, 61, 0.35);
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      section {
+        background: rgba(255, 255, 255, 0.88);
+        padding: clamp(18px, 2.4vw, 28px);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: clamp(1.3rem, 2vw, 1.7rem);
+      }
+
+      .card-actions,
+      .quiz-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      button.action {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: var(--secondary);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform var(--transition), box-shadow var(--transition);
+      }
+
+      button.action.secondary {
+        background: var(--accent);
+      }
+
+      button.action:active {
+        transform: scale(0.98);
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        perspective: 1200px;
+      }
+
+      .card-inner {
+        position: relative;
+        min-height: 180px;
+        border-radius: 16px;
+        transition: transform 420ms ease;
+        transform-style: preserve-3d;
+        cursor: pointer;
+      }
+
+      .card.is-flipped .card-inner {
+        transform: rotateY(180deg);
+      }
+
+      .card-face {
+        position: absolute;
+        inset: 0;
+        padding: 18px;
+        border-radius: 16px;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--card);
+        border: 2px solid #f4d3b1;
+      }
+
+      .card-face.back {
+        transform: rotateY(180deg);
+        background: #fff9ef;
+      }
+
+      .card-title {
+        font-weight: 700;
+      }
+
+      .hint {
+        display: none;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .hint.is-visible {
+        display: block;
+      }
+
+      .hint-toggle {
+        align-self: flex-start;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #ffe6c5;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .quiz-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .quiz-card {
+        padding: 18px;
+        border-radius: 16px;
+        background: var(--card);
+        border: 2px solid #f2d1ae;
+        display: grid;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+
+      .quiz-card.is-correct {
+        border-color: var(--correct);
+      }
+
+      .quiz-card.is-wrong {
+        border-color: var(--wrong);
+      }
+
+      .question-text {
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+      }
+
+      .option {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        background: #fff7ec;
+        cursor: pointer;
+      }
+
+      .option input {
+        accent-color: var(--accent-strong);
+      }
+
+      .option.is-correct {
+        border-color: var(--correct);
+        background: rgba(46, 157, 97, 0.12);
+      }
+
+      .option.is-wrong {
+        border-color: var(--wrong);
+        background: rgba(217, 75, 75, 0.12);
+      }
+
+      .quiz-feedback {
+        display: none;
+        padding: 12px;
+        border-radius: 12px;
+        background: #fff3dd;
+        color: var(--muted);
+      }
+
+      .quiz-feedback.is-visible {
+        display: block;
+      }
+
+      .quiz-feedback strong {
+        color: var(--ink);
+      }
+
+      .quiz-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .end-screen {
+        display: none;
+        padding: 24px;
+        border-radius: 16px;
+        background: #fff6e5;
+        text-align: center;
+        margin-top: 16px;
+      }
+
+      .end-screen.is-visible {
+        display: block;
+      }
+
+      details summary {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
+      .summary-list {
+        margin: 12px 0 0;
+        padding-left: 18px;
+      }
+
+      @media (max-width: 720px) {
+        .top-bar {
+          grid-template-columns: 1fr;
+        }
+        .quiz-nav {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="top-bar">
+        <div class="title-block">
+          <h1>{{title}}</h1>
+          <div class="meta">{{subject}} • {{topic}} • {{grade}}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-text">Score: <span id="scoreValue">0</span>/<span id="totalValue">0</span></div>
+          <div class="progress"><span id="scoreBar"></span></div>
+        </div>
+        <div class="mode-toggle" role="tablist">
+          <button class="active" data-mode="study" type="button">Study Cards</button>
+          <button data-mode="quiz" type="button">Quiz</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="studySection">
+          <div class="section-header">
+            <h2>Study Cards</h2>
+            <div class="card-actions">
+              <button class="action" id="shuffleCards" type="button">Shuffle</button>
+              <button class="action secondary" id="resetCards" type="button">Reset All</button>
+            </div>
+          </div>
+          <div id="cardGrid" class="card-grid"></div>
+        </section>
+
+        <section id="quizSection" hidden>
+          <div class="section-header">
+            <h2>Quiz</h2>
+            <div class="quiz-controls">
+              <div class="view-toggle" role="tablist">
+                <button class="active" data-view="single" type="button">One at a time</button>
+                <button data-view="all" type="button">All at once</button>
+              </div>
+              <div class="quiz-actions">
+                <button class="action secondary" id="resetQuiz" type="button">Try Again</button>
+              </div>
+            </div>
+          </div>
+          <div id="quizContainer"></div>
+          <div class="quiz-nav" id="quizNav">
+            <span id="questionCounter"></span>
+            <button class="action" id="nextQuestion" type="button">Next</button>
+          </div>
+          <div id="endScreen" class="end-screen">
+            <h3 id="endTitle">Great job!</h3>
+            <p id="endScore"></p>
+            <button class="action" id="tryAgain" type="button">Try Again</button>
+          </div>
+        </section>
+
+        <section id="summarySection">
+          <details>
+            <summary>Summary</summary>
+            <ul class="summary-list" id="summaryList"></ul>
+          </details>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const quizData = {{{quizJson}}};
+
+      const scoreValue = document.getElementById('scoreValue');
+      const totalValue = document.getElementById('totalValue');
+      const scoreBar = document.getElementById('scoreBar');
+      const modeButtons = document.querySelectorAll('.mode-toggle button');
+      const viewButtons = document.querySelectorAll('.view-toggle button');
+      const studySection = document.getElementById('studySection');
+      const quizSection = document.getElementById('quizSection');
+      const cardGrid = document.getElementById('cardGrid');
+      const summaryList = document.getElementById('summaryList');
+      const quizContainer = document.getElementById('quizContainer');
+      const quizNav = document.getElementById('quizNav');
+      const questionCounter = document.getElementById('questionCounter');
+      const nextQuestionButton = document.getElementById('nextQuestion');
+      const endScreen = document.getElementById('endScreen');
+      const endTitle = document.getElementById('endTitle');
+      const endScore = document.getElementById('endScore');
+      const resetQuizButton = document.getElementById('resetQuiz');
+      const tryAgainButton = document.getElementById('tryAgain');
+      const shuffleButton = document.getElementById('shuffleCards');
+      const resetCardsButton = document.getElementById('resetCards');
+
+      let currentMode = 'study';
+      let currentView = 'single';
+      let currentIndex = 0;
+      let cards = [...quizData.studyCards];
+      const answers = {};
+
+      totalValue.textContent = String(quizData.quizQuestions.length);
+
+      function setMode(mode) {
+        currentMode = mode;
+        modeButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.mode === mode);
+        });
+        studySection.hidden = mode !== 'study';
+        quizSection.hidden = mode !== 'quiz';
+      }
+
+      function setView(view) {
+        currentView = view;
+        viewButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.view === view);
+        });
+        renderQuiz();
+      }
+
+      function updateScoreUI() {
+        const correctCount = Object.values(answers).filter((entry) => entry && entry.correct).length;
+        scoreValue.textContent = String(correctCount);
+        const total = quizData.quizQuestions.length || 1;
+        const percent = Math.round((correctCount / total) * 100);
+        scoreBar.style.width = `${percent}%`;
+      }
+
+      function renderSummary() {
+        summaryList.innerHTML = '';
+        quizData.summary.forEach((item) => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          summaryList.appendChild(li);
+        });
+      }
+
+      function syncCardHeight(wrapper) {
+        const inner = wrapper.querySelector('.card-inner');
+        const front = wrapper.querySelector('.card-face.front');
+        const back = wrapper.querySelector('.card-face.back');
+        if (!inner || !front || !back) {
+          return;
+        }
+        const maxHeight = Math.max(front.scrollHeight, back.scrollHeight);
+        inner.style.minHeight = `${maxHeight}px`;
+      }
+
+      function syncAllCardHeights() {
+        document.querySelectorAll('.card').forEach((card) => syncCardHeight(card));
+      }
+
+      function renderStudyCards() {
+        cardGrid.innerHTML = '';
+        const grouped = new Map();
+        let hasGroups = false;
+        cards.forEach((card) => {
+          const tag = card.topicTag || 'All Cards';
+          if (card.topicTag) {
+            hasGroups = true;
+          }
+          if (!grouped.has(tag)) {
+            grouped.set(tag, []);
+          }
+          grouped.get(tag).push(card);
+        });
+
+        grouped.forEach((groupCards, tag) => {
+          if (hasGroups) {
+            const heading = document.createElement('h3');
+            heading.textContent = tag;
+            cardGrid.appendChild(heading);
+          }
+          groupCards.forEach((card) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'card';
+            wrapper.dataset.cardId = card.id;
+
+            const inner = document.createElement('div');
+            inner.className = 'card-inner';
+
+            const front = document.createElement('div');
+            front.className = 'card-face front';
+
+            const title = document.createElement('div');
+            title.className = 'card-title';
+            title.textContent = card.title;
+
+            const frontText = document.createElement('div');
+            frontText.textContent = card.front;
+
+            front.appendChild(title);
+            front.appendChild(frontText);
+
+            if (card.hint) {
+              const hint = document.createElement('div');
+              hint.className = 'hint';
+              hint.textContent = card.hint;
+
+              const hintButton = document.createElement('button');
+              hintButton.type = 'button';
+              hintButton.className = 'hint-toggle';
+              hintButton.textContent = 'Hint';
+              hintButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                hint.classList.toggle('is-visible');
+                requestAnimationFrame(() => syncCardHeight(wrapper));
+              });
+
+              front.appendChild(hint);
+              front.appendChild(hintButton);
+            }
+
+            const back = document.createElement('div');
+            back.className = 'card-face back';
+            back.textContent = card.back;
+
+            inner.appendChild(front);
+            inner.appendChild(back);
+            wrapper.appendChild(inner);
+
+            wrapper.addEventListener('click', () => {
+              wrapper.classList.toggle('is-flipped');
+            });
+
+            cardGrid.appendChild(wrapper);
+            requestAnimationFrame(() => syncCardHeight(wrapper));
+          });
+        });
+      }
+
+      function shuffleCards() {
+        for (let i = cards.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        renderStudyCards();
+      }
+
+      function resetCards() {
+        document.querySelectorAll('.card').forEach((card) => card.classList.remove('is-flipped'));
+      }
+
+      function buildOptions(question, selectedKey, disabled) {
+        const container = document.createElement('div');
+        container.className = 'options';
+        question.options.forEach((option) => {
+          const label = document.createElement('label');
+          label.className = 'option';
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `question-${question.id}`;
+          input.value = option.key;
+          input.disabled = disabled;
+          if (selectedKey === option.key) {
+            input.checked = true;
+          }
+          const text = document.createElement('span');
+          text.textContent = `${option.key}. ${option.text}`;
+          label.appendChild(input);
+          label.appendChild(text);
+          container.appendChild(label);
+        });
+        return container;
+      }
+
+      function markOptions(card, question, selectedKey) {
+        const optionLabels = card.querySelectorAll('.option');
+        optionLabels.forEach((label) => {
+          const input = label.querySelector('input');
+          if (!input) return;
+          const key = input.value;
+          if (key === question.answer) {
+            label.classList.add('is-correct');
+          }
+          if (selectedKey && key === selectedKey && key !== question.answer) {
+            label.classList.add('is-wrong');
+          }
+        });
+      }
+
+      function renderSingleQuestion() {
+        quizContainer.innerHTML = '';
+        endScreen.classList.remove('is-visible');
+        const question = quizData.quizQuestions[currentIndex];
+        if (!question) {
+          return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        const prompt = document.createElement('div');
+        prompt.className = 'question-text';
+        prompt.textContent = question.question;
+
+        const state = answers[question.id];
+        const options = buildOptions(question, state?.selected, state?.checked);
+
+        const checkButton = document.createElement('button');
+        checkButton.type = 'button';
+        checkButton.className = 'action secondary';
+        checkButton.textContent = state?.checked ? 'Checked' : 'Check Answer';
+        checkButton.disabled = !!state?.checked;
+
+        const feedback = document.createElement('div');
+        feedback.className = 'quiz-feedback';
+
+        if (state?.checked) {
+          feedback.classList.add('is-visible');
+          feedback.innerHTML = `<strong>${state.correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+          card.classList.add(state.correct ? 'is-correct' : 'is-wrong');
+          markOptions(card, question, state.selected);
+        }
+
+        checkButton.addEventListener('click', () => {
+          const selected = card.querySelector('input:checked');
+          if (!selected) {
+            return;
+          }
+          const selectedKey = selected.value;
+          const correct = selectedKey === question.answer;
+          answers[question.id] = { selected: selectedKey, correct, checked: true };
+          feedback.classList.add('is-visible');
+          feedback.innerHTML = `<strong>${correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+          card.classList.add(correct ? 'is-correct' : 'is-wrong');
+          markOptions(card, question, selectedKey);
+          checkButton.textContent = 'Checked';
+          checkButton.disabled = true;
+          updateScoreUI();
+        });
+
+        card.appendChild(prompt);
+        card.appendChild(options);
+        card.appendChild(checkButton);
+        card.appendChild(feedback);
+        quizContainer.appendChild(card);
+        questionCounter.textContent = `Question ${currentIndex + 1} of ${quizData.quizQuestions.length}`;
+        quizNav.style.display = 'flex';
+      }
+
+      function renderAllQuestions() {
+        quizContainer.innerHTML = '';
+        quizNav.style.display = 'none';
+        endScreen.classList.remove('is-visible');
+
+        quizData.quizQuestions.forEach((question) => {
+          const card = document.createElement('div');
+          card.className = 'quiz-card';
+
+          const prompt = document.createElement('div');
+          prompt.className = 'question-text';
+          prompt.textContent = question.question;
+
+          const state = answers[question.id];
+          const options = buildOptions(question, state?.selected, state?.checked);
+
+          const checkButton = document.createElement('button');
+          checkButton.type = 'button';
+          checkButton.className = 'action secondary';
+          checkButton.textContent = state?.checked ? 'Checked' : 'Check Answer';
+          checkButton.disabled = !!state?.checked;
+
+          const feedback = document.createElement('div');
+          feedback.className = 'quiz-feedback';
+
+          if (state?.checked) {
+            feedback.classList.add('is-visible');
+            feedback.innerHTML = `<strong>${state.correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+            card.classList.add(state.correct ? 'is-correct' : 'is-wrong');
+            markOptions(card, question, state.selected);
+          }
+
+          checkButton.addEventListener('click', () => {
+            const selected = card.querySelector('input:checked');
+            if (!selected) {
+              return;
+            }
+            const selectedKey = selected.value;
+            const correct = selectedKey === question.answer;
+            answers[question.id] = { selected: selectedKey, correct, checked: true };
+            feedback.classList.add('is-visible');
+            feedback.innerHTML = `<strong>${correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+            card.classList.add(correct ? 'is-correct' : 'is-wrong');
+            markOptions(card, question, selectedKey);
+            checkButton.textContent = 'Checked';
+            checkButton.disabled = true;
+            updateScoreUI();
+            if (quizData.quizQuestions.every((q) => answers[q.id]?.checked)) {
+              showEndScreen();
+            }
+          });
+
+          card.appendChild(prompt);
+          card.appendChild(options);
+          card.appendChild(checkButton);
+          card.appendChild(feedback);
+          quizContainer.appendChild(card);
+        });
+      }
+
+      function renderQuiz() {
+        if (currentView === 'single') {
+          renderSingleQuestion();
+        } else {
+          renderAllQuestions();
+        }
+      }
+
+      function showEndScreen() {
+        const correctCount = Object.values(answers).filter((entry) => entry && entry.correct).length;
+        const total = quizData.quizQuestions.length || 1;
+        const scorePercent = Math.round((correctCount / total) * 100);
+        let rating = '🌟';
+        let title = 'Great job!';
+
+        if (scorePercent >= 90) {
+          rating = '🏆';
+          title = 'Quiz Champion!';
+        } else if (scorePercent >= 70) {
+          rating = '🎉';
+          title = 'Nice work!';
+        } else if (scorePercent >= 50) {
+          rating = '🙂';
+          title = 'Keep going!';
+        } else {
+          rating = '💪';
+          title = 'Practice makes perfect!';
+        }
+
+        endTitle.textContent = `${rating} ${title}`;
+        endScore.textContent = `Final score: ${correctCount} / ${total}`;
+        endScreen.classList.add('is-visible');
+      }
+
+      function resetQuiz() {
+        Object.keys(answers).forEach((key) => {
+          delete answers[key];
+        });
+        currentIndex = 0;
+        updateScoreUI();
+        renderQuiz();
+        endScreen.classList.remove('is-visible');
+      }
+
+      nextQuestionButton.addEventListener('click', () => {
+        if (currentIndex < quizData.quizQuestions.length - 1) {
+          currentIndex += 1;
+          renderSingleQuestion();
+          return;
+        }
+        showEndScreen();
+      });
+
+      modeButtons.forEach((button) => {
+        button.addEventListener('click', () => setMode(button.dataset.mode));
+      });
+
+      viewButtons.forEach((button) => {
+        button.addEventListener('click', () => setView(button.dataset.view));
+      });
+
+      shuffleButton.addEventListener('click', shuffleCards);
+      resetCardsButton.addEventListener('click', resetCards);
+      resetQuizButton.addEventListener('click', resetQuiz);
+      tryAgainButton.addEventListener('click', resetQuiz);
+      window.addEventListener('resize', syncAllCardHeights);
+
+      renderSummary();
+      renderStudyCards();
+      renderQuiz();
+      updateScoreUI();
+    </script>
+  </body>
+</html>

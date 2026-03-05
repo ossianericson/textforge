@@ -1,0 +1,189 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import readline from 'node:readline/promises';
+import { execSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
+import { getConfig } from '#config';
+
+interface TemplateOption {
+  key: string;
+  label: string;
+  file: string;
+  description: string;
+}
+
+const TEMPLATES: TemplateOption[] = [
+  {
+    key: 'standard',
+    label: 'Standard (buttons)',
+    file: 'template.md',
+    description: 'Button-based Q&A flow - like Compute or Troubleshooting',
+  },
+  {
+    key: 'dropdown',
+    label: 'Dropdown (numeric ranges)',
+    file: 'template-dropdown.md',
+    description: 'Numeric input with range-based routing - like a risk scorer',
+  },
+  {
+    key: 'matrix',
+    label: 'Dropdown-pair matrix',
+    file: 'template-matrix.md',
+    description: 'Two dropdowns with matrix routing - like DR Architecture',
+  },
+  {
+    key: 'blank',
+    label: 'Blank (minimal)',
+    file: 'template-blank.md',
+    description: 'Just the required headers and one placeholder question',
+  },
+];
+
+function usage(): void {
+  console.log('Usage: npm run init -- <topic> [--template standard|dropdown|matrix|blank]');
+  console.log('Example: npm run init -- my-topic');
+  console.log('');
+  console.log('Templates:');
+  for (const template of TEMPLATES) {
+    console.log(`  ${template.key.padEnd(12)} ${template.description}`);
+  }
+}
+
+function validateTopic(topic: string): string {
+  if (!topic) {
+    return 'Topic name is required.';
+  }
+  if (topic.includes('/') || topic.includes('\\')) {
+    return 'Topic name must not contain path separators.';
+  }
+  if (!/^[a-z0-9-]+$/i.test(topic)) {
+    return 'Topic name should use letters, numbers, and hyphens only.';
+  }
+  return '';
+}
+
+async function selectTemplate(): Promise<TemplateOption> {
+  const flagIndex = process.argv.indexOf('--template');
+  if (flagIndex !== -1 && process.argv[flagIndex + 1]) {
+    const key = process.argv[flagIndex + 1];
+    const found = TEMPLATES.find((template) => template.key === key);
+    if (found) {
+      return found;
+    }
+    console.error(`Unknown template: ${key}`);
+    usage();
+    process.exit(1);
+  }
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  console.log('\nAvailable templates:\n');
+  TEMPLATES.forEach((template, index) => {
+    console.log(`  ${index + 1}. ${template.label}`);
+    console.log(`     ${template.description}\n`);
+  });
+
+  const answer = await rl.question('Select template [1]: ');
+  rl.close();
+
+  const index = parseInt(answer || '1', 10) - 1;
+  return TEMPLATES[index] ?? TEMPLATES[0]!;
+}
+
+export async function initTopic(topicOverride?: string): Promise<void> {
+  const args = process.argv.slice(2);
+  let topicRaw = topicOverride ?? '';
+  if (!topicRaw) {
+    for (let i = 0; i < args.length; i += 1) {
+      const arg = args[i];
+      if (!arg) {
+        continue;
+      }
+      if (arg === '--template') {
+        i += 1;
+        continue;
+      }
+      if (arg.startsWith('--')) {
+        continue;
+      }
+      topicRaw = arg;
+      break;
+    }
+  }
+
+  const topic = topicRaw.trim();
+  const error = validateTopic(topic);
+  if (error) {
+    console.error(error);
+    usage();
+    process.exit(1);
+  }
+
+  const template = await selectTemplate();
+  const config = getConfig();
+  const templateSpecPath = path.join(config.rootDir, 'core', template.file);
+  const targetDir = path.join(config.decisionTreesDir, topic);
+  const specPath = path.join(targetDir, 'spec.md');
+
+  if (!fs.existsSync(templateSpecPath)) {
+    const fallback = path.join(config.rootDir, 'core', 'template.md');
+    if (!fs.existsSync(fallback)) {
+      console.error(`Template not found: ${templateSpecPath}`);
+      process.exit(1);
+    }
+    console.warn(`Template '${template.key}' not found, using standard template.`);
+  }
+
+  if (fs.existsSync(specPath)) {
+    console.error(`Spec already exists: ${specPath}`);
+    process.exit(1);
+  }
+
+  fs.mkdirSync(targetDir, { recursive: true });
+
+  const sourcePath = fs.existsSync(templateSpecPath)
+    ? templateSpecPath
+    : path.join(config.rootDir, 'core', 'template.md');
+  let content = fs.readFileSync(sourcePath, 'utf8');
+  const titleCase = topic
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  content = content
+    .replace(/\[Decision Tree Title\]/g, `Azure ${titleCase} Decision Tree`)
+    .replace(/\[Decision Tree Name\]/g, `Azure ${titleCase}`)
+    .replace(/\[DATE\]/g, new Date().toISOString().slice(0, 10))
+    .replace(/\[NAME\]/g, process.env.USER ?? 'Author');
+
+  fs.writeFileSync(specPath, content, 'utf8');
+
+  console.log(`\nCreated ${specPath} (template: ${template.label})\n`);
+  console.log('Next steps:');
+  console.log(`  1. Edit ${specPath}`);
+  console.log('  2. npm run validate:spec');
+  console.log(`  3. npm run compile:topic -- ${topic}`);
+  console.log(`  4. Open output/${topic}-tree.html`);
+
+  try {
+    execSync('npm run validate:spec 2>&1', { encoding: 'utf8', timeout: 10_000 });
+    console.log('  OK: Template passes validation\n');
+  } catch {
+    console.log('  WARN: Run "npm run validate:spec:fix" to auto-fix template placeholders\n');
+  }
+}
+
+async function main(): Promise<void> {
+  const topicRaw = process.argv.slice(2)[0] ?? '';
+  await initTopic(topicRaw);
+}
+
+const isDirectRun =
+  (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) ||
+  process.argv[1]?.endsWith('init.js');
+
+if (isDirectRun) {
+  main().catch((err: unknown) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
