@@ -7,7 +7,7 @@
 > support, maintenance, or security update commitments. Teams that adopt it are
 > responsible for their own fork, dependency management, and production readiness.
 
-**textforge** is a Markdown-to-HTML compiler that turns structured specification files into fully interactive, self-contained decision trees — deployed inside Confluence with no server, no plugin, and no approval process.
+**textforge** is a Markdown-to-HTML compiler that turns structured specification files into fully interactive, self-contained decision trees — deployed in any browser, Confluence, SharePoint, or any platform that renders HTML — no server, no plugin, no approval process
 
 Your domain expert writes the knowledge in plain text. The compiler encodes it once. It runs without them, forever.
 
@@ -398,7 +398,7 @@ The same pattern applies to any structured knowledge domain: compliance checklis
 ---
 ## Author
 
-Built by [Ossian Ericson](https://www.linkedin.com/in/ossianericson) — 
+Built by [Ossian Ericson](https://www.linkedin.com/in/ossian-ericson) — 
 Cloud Architect with 25 years in enterprise infrastructure.
 
 ## License
