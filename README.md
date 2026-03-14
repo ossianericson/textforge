@@ -30,6 +30,9 @@ Your domain expert writes the knowledge in plain text. The compiler encodes it o
 
 This project started as a homework experiment — I asked an AI to build a best-in-class interactive learning tool for my daughter. What came back was more polished and better structured than anything our internal tooling had produced in years.
 
+For a deeper dive into the architectural philosophy behind this project, read the full article: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b)
+
+
 That raised an obvious question: _why don't our internal tools meet this standard?_
 
 textforge is shared as a community inspiration package, built entirely with AI assistance and with zero runtime AI dependency. The compiler is deterministic. The same spec always produces the same HTML. No model in the loop at runtime. No black box governance.
@@ -398,8 +401,12 @@ The same pattern applies to any structured knowledge domain: compliance checklis
 ---
 ## Author
 
-Built by [Ossian Ericson](https://www.linkedin.com/in/ossian-ericson) — 
-Cloud Architect with 25 years in enterprise infrastructure.
+## Author
+
+**Ossian Ericson**
+* **[span_0](start_span)[span_1](start_span)Role**: Cloud Architect with 25+ years experience in mission-critical financial services.[span_0](end_span)[span_1](end_span)
+* **[span_2](start_span)Connect**: [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)[span_2](end_span)
+* **Read**: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b) (Medium)
 
 ## License
 
