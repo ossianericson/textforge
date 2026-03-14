@@ -401,11 +401,9 @@ The same pattern applies to any structured knowledge domain: compliance checklis
 ---
 ## Author
 
-## Author
-
 **Ossian Ericson**
-* **[span_0](start_span)[span_1](start_span)Role**: Cloud Architect with 25+ years experience in mission-critical financial services.[span_0](end_span)[span_1](end_span)
-* **[span_2](start_span)Connect**: [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)[span_2](end_span)
+* **Role**: Cloud Architect with 25+ years experience in mission-critical financial services.
+* **Connect**: [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)
 * **Read**: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b) (Medium)
 
 ## License
