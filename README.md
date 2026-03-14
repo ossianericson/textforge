@@ -23,12 +23,9 @@ Your domain expert writes the knowledge in plain text. The compiler encodes it o
 
 ## Origin
 
-This project started as a homework experiment — I asked an AI to build a best-in-class interactive learning tool for my daughter. What came back was more polished and better structured than anything our internal tooling had produced in years.
+This project started as a homework experiment — I asked an AI to build a best-in-class interactive learning tool for my daughter. What came back was more polished and better structured than anything our internal tooling had produced in years. That raised an obvious question: _why don't our internal tools meet this standard?_
 
 For a deeper dive into the architectural philosophy behind this project, read the full article: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b)
-
-
-That raised an obvious question: _why don't our internal tools meet this standard?_
 
 textforge is shared as a community inspiration package, built entirely with AI assistance and with zero runtime AI dependency. The compiler is deterministic. The same spec always produces the same HTML. No model in the loop at runtime. No black box governance.
 
@@ -149,13 +146,7 @@ Every tree in this repo was designed using a reusable AI generator prompt — a 
 template you paste into any AI with your topic details. The AI writes the spec. The
 compiler validates and builds it.
 
-Generator prompts live in docs/generators/. They work with any model (Claude,
-GPT-4, Gemini) and produce output the compiler accepts without manual cleanup.
-
-```
-docs/generators/
-├── decision-tree-spec-generator-prompt.md  ← generate a new decision tree spec
-└── quiz-spec-generator-prompt.md           ← generate a quiz or study set spec
+They work with any model (Claude, OpenAI, Gemini) and produce output the compiler accepts without manual cleanup.
 ```
 
 Workflow:
@@ -364,10 +355,6 @@ This project is built to production standards, not demo standards.
 - **Conventional Commits** — readable history, self-writing CHANGELOG
 - **Trunk-based development** — one branch, always shippable, CI gate before anything merges
 - **Zero runtime AI dependency** — the compiler is deterministic; same spec always produces same output
-
----
-
-For a full file reference, see [`docs/deep-dive.md`](docs/deep-dive.md).
 
 ---
 
