@@ -147,11 +147,13 @@ template you paste into any AI with your topic details. The AI writes the spec. 
 compiler validates and builds it.
 
 They work with any model (Claude, OpenAI, Gemini) and produce output the compiler accepts without manual cleanup.
+
 ```
 docs/generators/
 ├── decision-tree-spec-generator-prompt.md  ← generate a new decision tree spec
 └── quiz-spec-generator-prompt.md           ← generate a quiz or study set spec
 ```
+
 Workflow:
 
 ```bash
