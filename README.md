@@ -2,11 +2,6 @@
 
 > One spec. One compiler. Any interactive tool your domain expert can describe in plain text.
 
-> **📣 Community Inspiration Package**
-> textforge is published as a community inspiration package. It is shared as-is with no
-> support, maintenance, or security update commitments. Teams that adopt it are
-> responsible for their own fork, dependency management, and production readiness.
-
 **textforge** is a Markdown-to-HTML compiler that turns structured specification files into fully interactive, self-contained decision trees — deployed in any browser, Confluence, SharePoint, or any platform that renders HTML — no server, no plugin, no approval process
 
 Your domain expert writes the knowledge in plain text. The compiler encodes it once. It runs without them, forever.
@@ -372,31 +367,19 @@ This project is built to production standards, not demo standards.
 
 ---
 
-## Key Files
-
-| File                                                     | What it is                                                           | When to read it                       |
-| -------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------- |
-| `core/template.md`                                       | Standard (button-based) spec template                                | When creating a new button-style tree |
-| `decision-tree.rules.md`                                 | Full syntax and validation rules                                     | Before every spec edit                |
-| `core/style-guide.md`                                    | Colors, typography, layout standards                                 | When reviewing HTML output            |
-| `core/badges.yml`                                        | Badge category → color mappings                                      | When adding new result categories     |
-| `quiz/example-multicloud-compute/spec.md`                | Example quiz spec — multi-cloud compute covering Azure, AWS, and GCP | Reference when writing quiz specs     |
-| `docs/generators/decision-tree-spec-generator-prompt.md` | AI prompt to generate a new decision tree spec                       | When starting a new tree from scratch |
-| `docs/generators/quiz-spec-generator-prompt.md`          | AI prompt to generate a quiz spec                                    | When creating a quiz or study set     |
-| `docs/deep-dive.md`                                      | Architecture, deployment, error codes                                | For troubleshooting or deep dives     |
-| `CHANGELOG.md`                                           | Release history                                                      | To see what changed                   |
+For a full file reference, see [`docs/deep-dive.md`](docs/deep-dive.md).
 
 ---
 
 ## The Pattern
 
-textforge is not just a decision tree tool. It is a demonstration of a reusable pattern:
+textforge demonstrates a reusable principle: AI at design time, deterministic compiler at runtime.
 
-1. **Domain expert** — writes questions and answers in plain Markdown. No code needed.
-2. **AI reasoning layer** — used at design time to pressure-test logic, surface edge cases, validate structure. Not present at runtime.
-3. **Compiler** — deterministic, offline, owned by you. Same input always produces same output.
+1. **Domain expert** — writes decisions in plain Markdown. No code needed.
+2. **AI reasoning layer** — design time only. Pressure-tests logic, surfaces edge cases. Not present at runtime.
+3. **Compiler** — deterministic, offline, owned by you. Same input, same output, always.
 
-The same pattern applies to any structured knowledge domain: compliance checklists, onboarding wizards, incident runbooks, training flows, quiz and study tools, architecture guidance. If a domain expert can describe the decisions or questions in plain text, the compiler can turn it into a production tool. The generator prompts in docs/generators/ make this accessible to anyone — describe your topic to any AI and get a compiler-ready spec back.
+The same pattern applies to any structured knowledge domain: compliance checklists, onboarding wizards, incident runbooks, training flows, architecture guidance.
 
 ---
 ## Author
@@ -405,6 +388,11 @@ The same pattern applies to any structured knowledge domain: compliance checklis
 * **Role**: Cloud Architect with 25+ years experience in mission-critical financial services.
 * **Connect**: [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)
 * **Read**: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b) (Medium)
+
+> **📣 Community Inspiration Package**
+> textforge is published as a community inspiration package. It is shared as-is with no
+> support, maintenance, or security update commitments. Teams that adopt it are
+> responsible for their own fork, dependency management, and production readiness.
 
 ## License
 
