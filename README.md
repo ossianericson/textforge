@@ -148,7 +148,10 @@ compiler validates and builds it.
 
 They work with any model (Claude, OpenAI, Gemini) and produce output the compiler accepts without manual cleanup.
 ```
-
+docs/generators/
+├── decision-tree-spec-generator-prompt.md  ← generate a new decision tree spec
+└── quiz-spec-generator-prompt.md           ← generate a quiz or study set spec
+```
 Workflow:
 
 ```bash
@@ -161,8 +164,6 @@ Workflow:
 npm run validate:spec
 npm run compile:topic -- <topic>
 ```
-
-Generator prompts are stored under docs/generators/.
 
 ---
 
