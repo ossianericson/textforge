@@ -19,6 +19,7 @@ Your domain expert writes the knowledge in plain text. The compiler encodes it o
 ## What It Looks Like
 
 ![Animated GIF of a compute decision tree](docs/compute-decision-tree.gif)
+
 👉 [Live demo — no install needed](https://ossianericson.github.io/textforge/output/example-multicloud-compute-tree.html)
 ---
 
