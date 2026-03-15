@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Multi-Cloud Compute — Which Service to Use? (Quiz)</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fff3dd;
+        --bg-strong: #ffe2b5;
+        --card: #ffffff;
+        --ink: #2d2a26;
+        --muted: #6b5f54;
+        --accent: #ff8b5a;
+        --accent-strong: #ff6a3d;
+        --secondary: #47b4a5;
+        --correct: #2e9d61;
+        --wrong: #d94b4b;
+        --shadow: 0 18px 36px rgba(47, 33, 15, 0.18);
+        --radius: 18px;
+        --transition: 220ms ease;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", "Gill Sans", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top, #fff5e8 0%, #ffe6c5 38%, #ffd7a4 100%);
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 24px clamp(18px, 3vw, 36px) 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .top-bar {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        align-items: center;
+        padding: 18px 20px;
+        border-radius: var(--radius);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+      }
+
+      .title-block h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+        letter-spacing: 0.5px;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+
+      .score-block {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .score-text {
+        font-weight: 700;
+      }
+
+      .progress {
+        height: 10px;
+        background: #f4d3b1;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--secondary), #6fd6c2);
+        transition: width var(--transition);
+      }
+
+      .mode-toggle,
+      .view-toggle {
+        display: inline-flex;
+        gap: 8px;
+        background: #fff1df;
+        padding: 6px;
+        border-radius: 999px;
+      }
+
+      .mode-toggle button,
+      .view-toggle button {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: transparent;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--muted);
+        transition: var(--transition);
+      }
+
+      .mode-toggle button.active,
+      .view-toggle button.active {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 10px 18px rgba(255, 106, 61, 0.35);
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      section {
+        background: rgba(255, 255, 255, 0.88);
+        padding: clamp(18px, 2.4vw, 28px);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: clamp(1.3rem, 2vw, 1.7rem);
+      }
+
+      .card-actions,
+      .quiz-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      button.action {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: var(--secondary);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform var(--transition), box-shadow var(--transition);
+      }
+
+      button.action.secondary {
+        background: var(--accent);
+      }
+
+      button.action:active {
+        transform: scale(0.98);
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        perspective: 1200px;
+      }
+
+      .card-inner {
+        position: relative;
+        min-height: 180px;
+        border-radius: 16px;
+        transition: transform 420ms ease;
+        transform-style: preserve-3d;
+        cursor: pointer;
+      }
+
+      .card.is-flipped .card-inner {
+        transform: rotateY(180deg);
+      }
+
+      .card-face {
+        position: absolute;
+        inset: 0;
+        padding: 18px;
+        border-radius: 16px;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--card);
+        border: 2px solid #f4d3b1;
+      }
+
+      .card-face.back {
+        transform: rotateY(180deg);
+        background: #fff9ef;
+      }
+
+      .card-title {
+        font-weight: 700;
+      }
+
+      .hint {
+        display: none;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .hint.is-visible {
+        display: block;
+      }
+
+      .hint-toggle {
+        align-self: flex-start;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #ffe6c5;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .quiz-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .quiz-card {
+        padding: 18px;
+        border-radius: 16px;
+        background: var(--card);
+        border: 2px solid #f2d1ae;
+        display: grid;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+
+      .quiz-card.is-correct {
+        border-color: var(--correct);
+      }
+
+      .quiz-card.is-wrong {
+        border-color: var(--wrong);
+      }
+
+      .question-text {
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+      }
+
+      .option {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        background: #fff7ec;
+        cursor: pointer;
+      }
+
+      .option input {
+        accent-color: var(--accent-strong);
+      }
+
+      .option.is-correct {
+        border-color: var(--correct);
+        background: rgba(46, 157, 97, 0.12);
+      }
+
+      .option.is-wrong {
+        border-color: var(--wrong);
+        background: rgba(217, 75, 75, 0.12);
+      }
+
+      .quiz-feedback {
+        display: none;
+        padding: 12px;
+        border-radius: 12px;
+        background: #fff3dd;
+        color: var(--muted);
+      }
+
+      .quiz-feedback.is-visible {
+        display: block;
+      }
+
+      .quiz-feedback strong {
+        color: var(--ink);
+      }
+
+      .quiz-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .end-screen {
+        display: none;
+        padding: 24px;
+        border-radius: 16px;
+        background: #fff6e5;
+        text-align: center;
+        margin-top: 16px;
+      }
+
+      .end-screen.is-visible {
+        display: block;
+      }
+
+      details summary {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
+      .summary-list {
+        margin: 12px 0 0;
+        padding-left: 18px;
+      }
+
+      @media (max-width: 720px) {
+        .top-bar {
+          grid-template-columns: 1fr;
+        }
+        .quiz-nav {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="top-bar">
+        <div class="title-block">
+          <h1>Multi-Cloud Compute — Which Service to Use? (Quiz)</h1>
+          <div class="meta">Cloud Architecture • Multi-Cloud Compute Service Selection • Technical</div>
+        </div>
+        <div class="score-block">
+          <div class="score-text">Score: <span id="scoreValue">0</span>/<span id="totalValue">0</span></div>
+          <div class="progress"><span id="scoreBar"></span></div>
+        </div>
+        <div class="mode-toggle" role="tablist">
+          <button class="active" data-mode="study" type="button">Study Cards</button>
+          <button data-mode="quiz" type="button">Quiz</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="studySection">
+          <div class="section-header">
+            <h2>Study Cards</h2>
+            <div class="card-actions">
+              <button class="action" id="shuffleCards" type="button">Shuffle</button>
+              <button class="action secondary" id="resetCards" type="button">Reset All</button>
+            </div>
+          </div>
+          <div id="cardGrid" class="card-grid"></div>
+        </section>
+
+        <section id="quizSection" hidden>
+          <div class="section-header">
+            <h2>Quiz</h2>
+            <div class="quiz-controls">
+              <div class="view-toggle" role="tablist">
+                <button class="active" data-view="single" type="button">One at a time</button>
+                <button data-view="all" type="button">All at once</button>
+              </div>
+              <div class="quiz-actions">
+                <button class="action secondary" id="resetQuiz" type="button">Try Again</button>
+              </div>
+            </div>
+          </div>
+          <div id="quizContainer"></div>
+          <div class="quiz-nav" id="quizNav">
+            <span id="questionCounter"></span>
+            <button class="action" id="nextQuestion" type="button">Next</button>
+          </div>
+          <div id="endScreen" class="end-screen">
+            <h3 id="endTitle">Great job!</h3>
+            <p id="endScore"></p>
+            <button class="action" id="tryAgain" type="button">Try Again</button>
+          </div>
+        </section>
+
+        <section id="summarySection">
+          <details>
+            <summary>Summary</summary>
+            <ul class="summary-list" id="summaryList"></ul>
+          </details>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const quizData = {
+  "title": "Multi-Cloud Compute — Which Service to Use? (Quiz)",
+  "grade": "Technical",
+  "subject": "Cloud Architecture",
+  "topic": "Multi-Cloud Compute Service Selection",
+  "studyCards": [
+    {
+      "id": "the-iaas-tier-azure-vms-amazon-ec2-google-compute-engine",
+      "title": "The IaaS Tier — Azure VMs / Amazon EC2 / Google Compute Engine",
+      "front": "What is the single most important reason to choose IaaS (VMs) over any PaaS or serverless option?",
+      "back": "Full OS control. Choose IaaS when you need to configure the operating system, install specific drivers or agents, run software that cannot be containerized, or perform a lift-and-shift migration with minimal code changes. The trade-off is that you own OS patching, security hardening, and runtime management.",
+      "hint": "If you're asking \"can I touch the OS?\" — IaaS is the answer when the answer is yes."
+    },
+    {
+      "id": "paas-web-tier-app-service-elastic-beanstalk-app-engine",
+      "title": "PaaS Web Tier — App Service / Elastic Beanstalk / App Engine",
+      "front": "What type of workload are App Service, Elastic Beanstalk, and App Engine all designed for, and what do they have in common?",
+      "back": "All three are PaaS platforms for traditional web applications and REST APIs. They manage the OS and runtime — you deploy application code only. Ideal for monolithic or traditional web apps that don't need containers. Best when the team wants to focus on code, not infrastructure.",
+      "hint": "Web app, managed runtime, zero OS ownership — that's the PaaS web tier."
+    },
+    {
+      "id": "managed-containers-container-apps-fargate-cloud-run",
+      "title": "Managed Containers — Container Apps / Fargate / Cloud Run",
+      "front": "What is the key shared advantage of Azure Container Apps, AWS Fargate, and Google Cloud Run compared to Kubernetes?",
+      "back": "No cluster to manage. All three run containers on fully managed infrastructure — you never touch a node pool or control plane. They support scale-to-zero, making them cost-effective for variable workloads. They are the default recommendation for containerized workloads unless you have a specific need for Kubernetes.",
+      "hint": "Containers without the Kubernetes complexity tax."
+    },
+    {
+      "id": "managed-kubernetes-aks-managed-eks-managed-gke-autopilot",
+      "title": "Managed Kubernetes — AKS Managed / EKS Managed / GKE Autopilot",
+      "front": "When should you choose managed Kubernetes (AKS managed, EKS managed node groups, GKE Autopilot) over the serverless container tier?",
+      "back": "When you need Kubernetes-specific capabilities — custom operators, CRDs, Helm at scale, GitOps workflows, or Kubernetes-native tooling — but do not want to own node pool lifecycle or control plane operations. Managed Kubernetes is always preferred over self-managed unless specific requirements make it impossible.",
+      "hint": "Kubernetes tooling, but someone else manages the nodes."
+    },
+    {
+      "id": "self-managed-kubernetes-aks-eks-gke-standard",
+      "title": "Self-Managed Kubernetes — AKS / EKS / GKE Standard",
+      "front": "What two conditions must both be true before choosing self-managed Kubernetes (AKS self-managed, EKS self-managed, GKE Standard)?",
+      "back": "(1) You have a specific requirement that managed Kubernetes cannot satisfy — custom CNI plugins, privileged containers, custom node images, GPU/TPU hardware, or node-level debugging. (2) You have dedicated platform engineering capacity to own cluster security, upgrades, and operations. If either condition is false, use managed Kubernetes.",
+      "hint": "Self-managed = last resort + dedicated ops team."
+    },
+    {
+      "id": "faas-tier-azure-functions-aws-lambda-google-cloud-functions",
+      "title": "FaaS Tier — Azure Functions / AWS Lambda / Google Cloud Functions",
+      "front": "What are the two workload characteristics that make FaaS (Functions / Lambda / Cloud Functions) the right choice?",
+      "back": "(1) Event-driven — triggered by a queue, HTTP call, timer, storage event, or messaging service. (2) Short-lived — execution completes within the platform's timeout limit. FaaS scales to zero between events, giving a consumption-based cost model ideal for sporadic or unpredictable traffic. Long-running, stateful, or latency-sensitive workloads are poor fits.",
+      "hint": "Event triggers + short execution = FaaS. Everything else, don't."
+    },
+    {
+      "id": "aws-fargate-vs-amazon-eks",
+      "title": "AWS Fargate vs Amazon EKS",
+      "front": "What is the AWS equivalent of Azure Container Apps, and when does it give way to Amazon EKS?",
+      "back": "AWS Fargate on ECS. It runs containers without servers or clusters, handles the majority of containerized workloads, and is the AWS default recommendation before considering EKS. Move to EKS when you need Kubernetes-specific capabilities — operators, CRDs, cluster-level networking, or cross-provider Kubernetes standardization.",
+      "hint": "Fargate first on AWS, EKS only when Kubernetes is genuinely needed."
+    },
+    {
+      "id": "gke-autopilot-vs-gke-standard",
+      "title": "GKE Autopilot vs GKE Standard",
+      "front": "What is the difference in responsibility between GKE Autopilot and GKE Standard?",
+      "back": "GKE Autopilot: Google manages nodes, node pools, security hardening, and scaling — you manage only Kubernetes workloads and manifests. GKE Standard: you manage node pools, machine types, OS configuration, and cluster upgrades — Google manages only the control plane. GKE Standard is for advanced requirements like GPU/TPU nodes, custom CNI, or privileged containers. Autopilot covers the majority of workloads.",
+      "hint": "Autopilot = Google owns nodes. Standard = you own nodes."
+    },
+    {
+      "id": "lift-and-shift-vs-cloud-optimized-migration",
+      "title": "Lift-and-Shift vs Cloud-Optimized Migration",
+      "front": "When migrating an existing application, what determines whether you choose IaaS (VMs) or PaaS?",
+      "back": "Whether the application can be containerized and whether the team is willing to refactor. Lift-and-shift with minimal changes → IaaS (Azure VMs / EC2 / GCE). Can be containerized → move to the container tier. Cloud-optimized refactoring → PaaS web tier (App Service / Beanstalk / App Engine). The decision tree applies the same logic across all three providers.",
+      "hint": "Refactor = PaaS. Containerize = container tier. Touch nothing = VM."
+    }
+  ],
+  "quizQuestions": [
+    {
+      "id": "Q1",
+      "question": "A team is migrating a Windows Server 2012 application to Azure. The app uses COM+ components registered in the OS registry and cannot be containerized. Which service is correct?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure App Service"
+        },
+        {
+          "key": "B",
+          "text": "Azure Container Apps"
+        },
+        {
+          "key": "C",
+          "text": "Azure Functions"
+        },
+        {
+          "key": "D",
+          "text": "Azure Virtual Machines"
+        }
+      ],
+      "answer": "D",
+      "explanation": "COM+ components require OS-level registration — only Azure VMs give you full OS control to support this. App Service and Container Apps are PaaS and do not expose OS internals. The workload cannot be containerized, which rules out the container tier entirely.",
+      "topicTag": "iaas"
+    },
+    {
+      "id": "Q2",
+      "question": "A startup is building a new REST API in Node.js on AWS. The team has no infrastructure engineers, traffic is predictable at around 300 requests per minute during business hours, and they want zero server management. What is the best fit?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Amazon EC2"
+        },
+        {
+          "key": "B",
+          "text": "Amazon EKS (self-managed)"
+        },
+        {
+          "key": "C",
+          "text": "AWS Elastic Beanstalk"
+        },
+        {
+          "key": "D",
+          "text": "AWS Fargate"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Elastic Beanstalk is AWS's PaaS web platform — you deploy application code, and AWS manages the OS, runtime, and scaling. It is the AWS equivalent of Azure App Service. EC2 requires infrastructure management. Fargate runs containers, adding complexity the team does not need for a simple REST API. Self-managed EKS is the wrong answer for any scenario requiring zero infrastructure overhead.",
+      "topicTag": "paas-web"
+    },
+    {
+      "id": "Q3",
+      "question": "A GCP team wants to deploy a containerised HTTP microservice. They do not want to manage a Kubernetes cluster. Traffic is variable and drops to near-zero overnight. What is the recommended service?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Google App Engine"
+        },
+        {
+          "key": "B",
+          "text": "GKE Standard"
+        },
+        {
+          "key": "C",
+          "text": "Google Compute Engine"
+        },
+        {
+          "key": "D",
+          "text": "Google Cloud Run"
+        }
+      ],
+      "answer": "D",
+      "explanation": "Cloud Run is GCP's fully managed container platform — no cluster to operate, supports scale-to-zero, and handles HTTP workloads natively. GKE Standard requires full cluster management. App Engine is for traditional web apps, not containerised microservices. GCE is IaaS and requires OS management.",
+      "topicTag": "managed-containers"
+    },
+    {
+      "id": "Q4",
+      "question": "An architecture team is evaluating compute services for a new Azure workload. The workload processes messages from a Service Bus queue, each job takes around 20 seconds, and volume is unpredictable — quiet for hours, then bursting to 500 messages. Which service fits best?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure App Service"
+        },
+        {
+          "key": "B",
+          "text": "Azure Virtual Machines"
+        },
+        {
+          "key": "C",
+          "text": "Azure Functions"
+        },
+        {
+          "key": "D",
+          "text": "Azure Container Apps"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Azure Functions with a Service Bus trigger is purpose-built for this pattern. The 20-second execution is within the timeout limit, the consumption plan handles burst-and-quiet traffic efficiently and scales to zero during quiet periods. App Service bills for reserved capacity regardless of traffic. Container Apps could work but adds unnecessary complexity for a simple event-driven job.",
+      "topicTag": "faas"
+    },
+    {
+      "id": "Q5",
+      "question": "A team running 15 microservices on AWS needs Kubernetes-native GitOps workflows and Helm chart deployments across services. They have a dedicated platform team. They want managed nodes to reduce operational overhead. What is the correct service?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "AWS Fargate on ECS"
+        },
+        {
+          "key": "B",
+          "text": "AWS Elastic Beanstalk"
+        },
+        {
+          "key": "C",
+          "text": "Amazon EKS with managed node groups"
+        },
+        {
+          "key": "D",
+          "text": "Amazon EKS self-managed"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Managed node groups on EKS give the team full Kubernetes API access for GitOps and Helm, while AWS manages the underlying node lifecycle. Self-managed EKS would add node upgrade and security overhead without benefit here. Fargate does not support the full Kubernetes tooling required. Beanstalk is a PaaS platform, not a Kubernetes environment.",
+      "topicTag": "managed-kubernetes"
+    },
+    {
+      "id": "Q6",
+      "question": "A GCP workload requires GPU node pools for ML inference and custom daemonsets for specialised hardware monitoring agents. Which service is required?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Google Cloud Run"
+        },
+        {
+          "key": "B",
+          "text": "Google App Engine"
+        },
+        {
+          "key": "C",
+          "text": "GKE Autopilot"
+        },
+        {
+          "key": "D",
+          "text": "GKE Standard"
+        }
+      ],
+      "answer": "D",
+      "explanation": "GPU node pools and custom daemonsets require node-level control — only GKE Standard provides this. GKE Autopilot manages nodes on your behalf and does not support privileged containers, custom node images, or custom daemonsets. Cloud Run is serverless. App Engine is a PaaS web platform.",
+      "topicTag": "self-managed-kubernetes"
+    },
+    {
+      "id": "Q7",
+      "question": "Which of the following is the correct AWS equivalent of Azure Container Apps?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Amazon EC2"
+        },
+        {
+          "key": "B",
+          "text": "AWS Lambda"
+        },
+        {
+          "key": "C",
+          "text": "AWS Elastic Beanstalk"
+        },
+        {
+          "key": "D",
+          "text": "AWS Fargate on ECS"
+        }
+      ],
+      "answer": "D",
+      "explanation": "AWS Fargate on ECS is the managed serverless container platform equivalent to Azure Container Apps — containers run without managing servers or clusters, with no Kubernetes required. Lambda is FaaS (event-driven, short-lived). Beanstalk is PaaS for web apps. EC2 is IaaS.",
+      "topicTag": "managed-containers"
+    },
+    {
+      "id": "Q8",
+      "question": "A team is migrating an existing application to GCP. They want to refactor it for cloud and host it as a traditional web application in Python. They do not want to containerize it. What is the right service?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Google Cloud Run"
+        },
+        {
+          "key": "B",
+          "text": "Google Cloud Functions"
+        },
+        {
+          "key": "C",
+          "text": "GKE Autopilot"
+        },
+        {
+          "key": "D",
+          "text": "Google App Engine"
+        }
+      ],
+      "answer": "D",
+      "explanation": "App Engine is GCP's PaaS web platform for traditional applications — Python is a supported runtime, and it requires no containerization or infrastructure management. Cloud Run requires a container image. Cloud Functions is FaaS for event-driven workloads. GKE Autopilot is Kubernetes and is far too complex for a straightforward web application migration.",
+      "topicTag": "paas-web"
+    },
+    {
+      "id": "Q9",
+      "question": "What is the correct order of preference when choosing a container platform on any of the three cloud providers, from least to most complex?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Serverless containers → Managed Kubernetes → Self-managed Kubernetes"
+        },
+        {
+          "key": "B",
+          "text": "Self-managed Kubernetes → Managed Kubernetes → Serverless containers"
+        },
+        {
+          "key": "C",
+          "text": "Managed Kubernetes → Serverless containers → Self-managed Kubernetes"
+        },
+        {
+          "key": "D",
+          "text": "Serverless containers → Self-managed Kubernetes → Managed Kubernetes"
+        }
+      ],
+      "answer": "A",
+      "explanation": "The decision tree applies the same preference hierarchy across all three providers: try serverless containers first (Container Apps / Fargate / Cloud Run) — no cluster management. If Kubernetes tooling is genuinely needed, use managed Kubernetes. Only fall back to self-managed Kubernetes when managed options cannot meet a specific requirement.",
+      "topicTag": "architecture-pattern"
+    },
+    {
+      "id": "Q10",
+      "question": "A team needs to deploy a containerized microservice on Azure. Their architect suggests self-managed AKS. Under what condition is this the correct recommendation?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "The team wants GitOps workflows and Helm chart deployments"
+        },
+        {
+          "key": "B",
+          "text": "The workload requires a custom CNI plugin and the team has dedicated Kubernetes engineers"
+        },
+        {
+          "key": "C",
+          "text": "The workload processes events from Event Grid and each execution takes 2 minutes"
+        },
+        {
+          "key": "D",
+          "text": "The team wants scale-to-zero behaviour to reduce overnight costs"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Custom CNI plugins require self-managed AKS with full cluster control and a dedicated Kubernetes engineering team to operate it. Option A describes managed AKS. Option C describes Azure Functions. Option D describes Container Apps. Self-managed AKS is only correct when managed options genuinely cannot meet requirements.",
+      "topicTag": "self-managed-kubernetes"
+    },
+    {
+      "id": "Q11",
+      "question": "Google Cloud Functions, AWS Lambda, and Azure Functions all share which of the following limitations?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "They cannot be triggered by HTTP requests"
+        },
+        {
+          "key": "B",
+          "text": "They require a container image to deploy"
+        },
+        {
+          "key": "C",
+          "text": "They are unsuitable for long-running processes due to execution timeout limits"
+        },
+        {
+          "key": "D",
+          "text": "They do not support automatic scaling"
+        }
+      ],
+      "answer": "C",
+      "explanation": "All three FaaS platforms have execution timeout limits that make them unsuitable for long-running processes. Azure Functions defaults to 5–10 minutes, Lambda to 15 minutes, Cloud Functions to 9 minutes. All three scale automatically, support HTTP triggers, and deploy from code packages. The timeout limit is the defining constraint that determines whether FaaS is appropriate.",
+      "topicTag": "faas"
+    },
+    {
+      "id": "Q12",
+      "question": "An architect is choosing between AWS Fargate and AWS Lambda for a new workload. The workload is a containerized API that maintains an in-memory cache across requests and handles traffic continuously throughout the day. Which is correct and why?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Lambda — because it supports containerized deployments"
+        },
+        {
+          "key": "B",
+          "text": "Fargate — because it supports long-running containers with persistent in-memory state across requests"
+        },
+        {
+          "key": "C",
+          "text": "Lambda — because continuous traffic is its primary use case"
+        },
+        {
+          "key": "D",
+          "text": "Fargate — but only when combined with ElastiCache to handle state"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Fargate runs long-running containers where in-memory state persists across requests on the same container instance. Lambda instances are stateless by design — in-memory cache cannot be relied upon across invocations. Lambda does support container images, but that does not change its execution model. The workload's continuous traffic and in-memory cache requirement both point to Fargate.",
+      "topicTag": "managed-containers"
+    }
+  ],
+  "summary": [
+    "IaaS (Azure VMs / EC2 / GCE) is the choice only when full OS control is required — it carries the highest operational responsibility of any tier",
+    "PaaS web platforms (App Service / Elastic Beanstalk / App Engine) are for traditional web apps and APIs with no container or OS management needed",
+    "Serverless containers (Container Apps / Fargate / Cloud Run) are the default recommendation for containerized workloads — no cluster to manage, scale to zero included",
+    "Managed Kubernetes (AKS managed / EKS managed node groups / GKE Autopilot) is for teams that need Kubernetes tooling but not cluster operations overhead",
+    "Self-managed Kubernetes (AKS / EKS self-managed / GKE Standard) is the last resort — only when managed options genuinely cannot meet requirements, and only with a dedicated ops team",
+    "FaaS (Functions / Lambda / Cloud Functions) is for event-driven, short-lived workloads — execution timeout limits make it unsuitable for long-running or stateful services",
+    "The preference hierarchy is the same across all three providers: serverless containers → managed Kubernetes → self-managed Kubernetes",
+    "Lift-and-shift migrations that cannot be containerized go to IaaS; those that can be containerized go to the container tier; cloud-optimized refactors go to the PaaS web tier",
+    "Scale-to-zero is available on the serverless container tier and FaaS tier — cost-effective for variable or unpredictable traffic",
+    "The biggest operational risk in cloud compute is choosing too low a level of abstraction — always start at the highest managed tier that meets your requirements"
+  ]
+};
+
+      const scoreValue = document.getElementById('scoreValue');
+      const totalValue = document.getElementById('totalValue');
+      const scoreBar = document.getElementById('scoreBar');
+      const modeButtons = document.querySelectorAll('.mode-toggle button');
+      const viewButtons = document.querySelectorAll('.view-toggle button');
+      const studySection = document.getElementById('studySection');
+      const quizSection = document.getElementById('quizSection');
+      const cardGrid = document.getElementById('cardGrid');
+      const summaryList = document.getElementById('summaryList');
+      const quizContainer = document.getElementById('quizContainer');
+      const quizNav = document.getElementById('quizNav');
+      const questionCounter = document.getElementById('questionCounter');
+      const nextQuestionButton = document.getElementById('nextQuestion');
+      const endScreen = document.getElementById('endScreen');
+      const endTitle = document.getElementById('endTitle');
+      const endScore = document.getElementById('endScore');
+      const resetQuizButton = document.getElementById('resetQuiz');
+      const tryAgainButton = document.getElementById('tryAgain');
+      const shuffleButton = document.getElementById('shuffleCards');
+      const resetCardsButton = document.getElementById('resetCards');
+
+      let currentMode = 'study';
+      let currentView = 'single';
+      let currentIndex = 0;
+      let cards = [...quizData.studyCards];
+      const answers = {};
+
+      totalValue.textContent = String(quizData.quizQuestions.length);
+
+      function setMode(mode) {
+        currentMode = mode;
+        modeButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.mode === mode);
+        });
+        studySection.hidden = mode !== 'study';
+        quizSection.hidden = mode !== 'quiz';
+      }
+
+      function setView(view) {
+        currentView = view;
+        viewButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.view === view);
+        });
+        renderQuiz();
+      }
+
+      function updateScoreUI() {
+        const correctCount = Object.values(answers).filter((entry) => entry && entry.correct).length;
+        scoreValue.textContent = String(correctCount);
+        const total = quizData.quizQuestions.length || 1;
+        const percent = Math.round((correctCount / total) * 100);
+        scoreBar.style.width = `${percent}%`;
+      }
+
+      function renderSummary() {
+        summaryList.innerHTML = '';
+        quizData.summary.forEach((item) => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          summaryList.appendChild(li);
+        });
+      }
+
+      function syncCardHeight(wrapper) {
+        const inner = wrapper.querySelector('.card-inner');
+        const front = wrapper.querySelector('.card-face.front');
+        const back = wrapper.querySelector('.card-face.back');
+        if (!inner || !front || !back) {
+          return;
+        }
+        const maxHeight = Math.max(front.scrollHeight, back.scrollHeight);
+        inner.style.minHeight = `${maxHeight}px`;
+      }
+
+      function syncAllCardHeights() {
+        document.querySelectorAll('.card').forEach((card) => syncCardHeight(card));
+      }
+
+      function renderStudyCards() {
+        cardGrid.innerHTML = '';
+        const grouped = new Map();
+        let hasGroups = false;
+        cards.forEach((card) => {
+          const tag = card.topicTag || 'All Cards';
+          if (card.topicTag) {
+            hasGroups = true;
+          }
+          if (!grouped.has(tag)) {
+            grouped.set(tag, []);
+          }
+          grouped.get(tag).push(card);
+        });
+
+        grouped.forEach((groupCards, tag) => {
+          if (hasGroups) {
+            const heading = document.createElement('h3');
+            heading.textContent = tag;
+            cardGrid.appendChild(heading);
+          }
+          groupCards.forEach((card) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'card';
+            wrapper.dataset.cardId = card.id;
+
+            const inner = document.createElement('div');
+            inner.className = 'card-inner';
+
+            const front = document.createElement('div');
+            front.className = 'card-face front';
+
+            const title = document.createElement('div');
+            title.className = 'card-title';
+            title.textContent = card.title;
+
+            const frontText = document.createElement('div');
+            frontText.textContent = card.front;
+
+            front.appendChild(title);
+            front.appendChild(frontText);
+
+            if (card.hint) {
+              const hint = document.createElement('div');
+              hint.className = 'hint';
+              hint.textContent = card.hint;
+
+              const hintButton = document.createElement('button');
+              hintButton.type = 'button';
+              hintButton.className = 'hint-toggle';
+              hintButton.textContent = 'Hint';
+              hintButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                hint.classList.toggle('is-visible');
+                requestAnimationFrame(() => syncCardHeight(wrapper));
+              });
+
+              front.appendChild(hint);
+              front.appendChild(hintButton);
+            }
+
+            const back = document.createElement('div');
+            back.className = 'card-face back';
+            back.textContent = card.back;
+
+            inner.appendChild(front);
+            inner.appendChild(back);
+            wrapper.appendChild(inner);
+
+            wrapper.addEventListener('click', () => {
+              wrapper.classList.toggle('is-flipped');
+            });
+
+            cardGrid.appendChild(wrapper);
+            requestAnimationFrame(() => syncCardHeight(wrapper));
+          });
+        });
+      }
+
+      function shuffleCards() {
+        for (let i = cards.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        renderStudyCards();
+      }
+
+      function resetCards() {
+        document.querySelectorAll('.card').forEach((card) => card.classList.remove('is-flipped'));
+      }
+
+      function buildOptions(question, selectedKey, disabled) {
+        const container = document.createElement('div');
+        container.className = 'options';
+        question.options.forEach((option) => {
+          const label = document.createElement('label');
+          label.className = 'option';
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `question-${question.id}`;
+          input.value = option.key;
+          input.disabled = disabled;
+          if (selectedKey === option.key) {
+            input.checked = true;
+          }
+          const text = document.createElement('span');
+          text.textContent = `${option.key}. ${option.text}`;
+          label.appendChild(input);
+          label.appendChild(text);
+          container.appendChild(label);
+        });
+        return container;
+      }
+
+      function markOptions(card, question, selectedKey) {
+        const optionLabels = card.querySelectorAll('.option');
+        optionLabels.forEach((label) => {
+          const input = label.querySelector('input');
+          if (!input) return;
+          const key = input.value;
+          if (key === question.answer) {
+            label.classList.add('is-correct');
+          }
+          if (selectedKey && key === selectedKey && key !== question.answer) {
+            label.classList.add('is-wrong');
+          }
+        });
+      }
+
+      function renderSingleQuestion() {
+        quizContainer.innerHTML = '';
+        endScreen.classList.remove('is-visible');
+        const question = quizData.quizQuestions[currentIndex];
+        if (!question) {
+          return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        const prompt = document.createElement('div');
+        prompt.className = 'question-text';
+        prompt.textContent = question.question;
+
+        const state = answers[question.id];
+        const options = buildOptions(question, state?.selected, state?.checked);
+
+        const checkButton = document.createElement('button');
+        checkButton.type = 'button';
+        checkButton.className = 'action secondary';
+        checkButton.textContent = state?.checked ? 'Checked' : 'Check Answer';
+        checkButton.disabled = !!state?.checked;
+
+        const feedback = document.createElement('div');
+        feedback.className = 'quiz-feedback';
+
+        if (state?.checked) {
+          feedback.classList.add('is-visible');
+          feedback.innerHTML = `<strong>${state.correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+          card.classList.add(state.correct ? 'is-correct' : 'is-wrong');
+          markOptions(card, question, state.selected);
+        }
+
+        checkButton.addEventListener('click', () => {
+          const selected = card.querySelector('input:checked');
+          if (!selected) {
+            return;
+          }
+          const selectedKey = selected.value;
+          const correct = selectedKey === question.answer;
+          answers[question.id] = { selected: selectedKey, correct, checked: true };
+          feedback.classList.add('is-visible');
+          feedback.innerHTML = `<strong>${correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+          card.classList.add(correct ? 'is-correct' : 'is-wrong');
+          markOptions(card, question, selectedKey);
+          checkButton.textContent = 'Checked';
+          checkButton.disabled = true;
+          updateScoreUI();
+        });
+
+        card.appendChild(prompt);
+        card.appendChild(options);
+        card.appendChild(checkButton);
+        card.appendChild(feedback);
+        quizContainer.appendChild(card);
+        questionCounter.textContent = `Question ${currentIndex + 1} of ${quizData.quizQuestions.length}`;
+        quizNav.style.display = 'flex';
+      }
+
+      function renderAllQuestions() {
+        quizContainer.innerHTML = '';
+        quizNav.style.display = 'none';
+        endScreen.classList.remove('is-visible');
+
+        quizData.quizQuestions.forEach((question) => {
+          const card = document.createElement('div');
+          card.className = 'quiz-card';
+
+          const prompt = document.createElement('div');
+          prompt.className = 'question-text';
+          prompt.textContent = question.question;
+
+          const state = answers[question.id];
+          const options = buildOptions(question, state?.selected, state?.checked);
+
+          const checkButton = document.createElement('button');
+          checkButton.type = 'button';
+          checkButton.className = 'action secondary';
+          checkButton.textContent = state?.checked ? 'Checked' : 'Check Answer';
+          checkButton.disabled = !!state?.checked;
+
+          const feedback = document.createElement('div');
+          feedback.className = 'quiz-feedback';
+
+          if (state?.checked) {
+            feedback.classList.add('is-visible');
+            feedback.innerHTML = `<strong>${state.correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+            card.classList.add(state.correct ? 'is-correct' : 'is-wrong');
+            markOptions(card, question, state.selected);
+          }
+
+          checkButton.addEventListener('click', () => {
+            const selected = card.querySelector('input:checked');
+            if (!selected) {
+              return;
+            }
+            const selectedKey = selected.value;
+            const correct = selectedKey === question.answer;
+            answers[question.id] = { selected: selectedKey, correct, checked: true };
+            feedback.classList.add('is-visible');
+            feedback.innerHTML = `<strong>${correct ? '✓ Correct' : '✗ Not quite'}</strong> ${question.explanation}`;
+            card.classList.add(correct ? 'is-correct' : 'is-wrong');
+            markOptions(card, question, selectedKey);
+            checkButton.textContent = 'Checked';
+            checkButton.disabled = true;
+            updateScoreUI();
+            if (quizData.quizQuestions.every((q) => answers[q.id]?.checked)) {
+              showEndScreen();
+            }
+          });
+
+          card.appendChild(prompt);
+          card.appendChild(options);
+          card.appendChild(checkButton);
+          card.appendChild(feedback);
+          quizContainer.appendChild(card);
+        });
+      }
+
+      function renderQuiz() {
+        if (currentView === 'single') {
+          renderSingleQuestion();
+        } else {
+          renderAllQuestions();
+        }
+      }
+
+      function showEndScreen() {
+        const correctCount = Object.values(answers).filter((entry) => entry && entry.correct).length;
+        const total = quizData.quizQuestions.length || 1;
+        const scorePercent = Math.round((correctCount / total) * 100);
+        let rating = '🌟';
+        let title = 'Great job!';
+
+        if (scorePercent >= 90) {
+          rating = '🏆';
+          title = 'Quiz Champion!';
+        } else if (scorePercent >= 70) {
+          rating = '🎉';
+          title = 'Nice work!';
+        } else if (scorePercent >= 50) {
+          rating = '🙂';
+          title = 'Keep going!';
+        } else {
+          rating = '💪';
+          title = 'Practice makes perfect!';
+        }
+
+        endTitle.textContent = `${rating} ${title}`;
+        endScore.textContent = `Final score: ${correctCount} / ${total}`;
+        endScreen.classList.add('is-visible');
+      }
+
+      function resetQuiz() {
+        Object.keys(answers).forEach((key) => {
+          delete answers[key];
+        });
+        currentIndex = 0;
+        updateScoreUI();
+        renderQuiz();
+        endScreen.classList.remove('is-visible');
+      }
+
+      nextQuestionButton.addEventListener('click', () => {
+        if (currentIndex < quizData.quizQuestions.length - 1) {
+          currentIndex += 1;
+          renderSingleQuestion();
+          return;
+        }
+        showEndScreen();
+      });
+
+      modeButtons.forEach((button) => {
+        button.addEventListener('click', () => setMode(button.dataset.mode));
+      });
+
+      viewButtons.forEach((button) => {
+        button.addEventListener('click', () => setView(button.dataset.view));
+      });
+
+      shuffleButton.addEventListener('click', shuffleCards);
+      resetCardsButton.addEventListener('click', resetCards);
+      resetQuizButton.addEventListener('click', resetQuiz);
+      tryAgainButton.addEventListener('click', resetQuiz);
+      window.addEventListener('resize', syncAllCardHeights);
+
+      renderSummary();
+      renderStudyCards();
+      renderQuiz();
+      updateScoreUI();
+    </script>
+  </body>
+</html>

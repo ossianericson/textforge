@@ -7,11 +7,12 @@
 Your domain expert writes the knowledge in plain text. The compiler encodes it once. It runs without them, forever.
 
 ---
+
 ## Why this exists
 
 - Domain experts write knowledge in plain Markdown — no developer needed
 - Deterministic compiler — same spec always produces same HTML, no AI at runtime
-- Single self-contained HTML file — embed in Confluence, SharePoint, 
+- Single self-contained HTML file — embed in Confluence, SharePoint,
   any wiki, any browser
 - Deep links, full-text search, keyboard navigation — production grade out of the box
 
@@ -77,6 +78,22 @@ npm test
 ```
 
 Open `output/example-multicloud-compute-tree.html` in your browser. You should see a fully interactive multi-cloud compute decision tree covering 19 services across Azure, AWS, and GCP.
+
+---
+
+## Examples
+
+### Cloud tree (interactive decision tree)
+
+- **File:** `output/example-multicloud-compute-tree.html`
+- **What it is:** A fully interactive, self-contained HTML decision tree that renders a cloud-services decision model (questions, choices, and results) in the browser.
+- **How to open:** Open the file in any modern browser (double-click, drag into a browser tab, or use `open`/`start`).
+
+### Quiz (standalone quiz)
+
+- **File:** `output/example-multicloud-compute-quiz.html`
+- **What it is:** A standalone HTML quiz with multiple-choice questions, scoring, and results. It runs entirely in the browser with no server or dependencies.
+- **How to open:** Open the file directly in a browser (double-click or drag into a browser tab).
 
 ---
 
@@ -372,12 +389,14 @@ textforge demonstrates a reusable principle: AI at design time, deterministic co
 The same pattern applies to any structured knowledge domain: compliance checklists, onboarding wizards, incident runbooks, training flows, architecture guidance.
 
 ---
+
 ## Author
 
 **Ossian Ericson**
-* **Role**: Cloud Architect with 25+ years experience in mission-critical financial services.
-* **Connect**: [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)
-* **Read**: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b) (Medium)
+
+- **Role**: Cloud Architect with 25+ years experience in mission-critical financial services.
+- **Connect**: [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)
+- **Read**: [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b) (Medium)
 
 > **📣 Community Inspiration Package**
 > textforge is published as a community inspiration package. It is shared as-is with no
