@@ -23,7 +23,7 @@
 - [ ] Contact block exists at end of each result card (team email aliases)
 - [ ] Search Tags (optional): comma-separated keywords for the search index
 - [ ] Badge colors live in core/badges.yml
-- [ ] docs/prompts/[topic]-prompt.md is optional for emphasis notes
+- [ ] docs/internal/prompts/[topic]-prompt.md is optional for emphasis notes
 - [ ] Version header: **Version:** v1.0
 
 ---

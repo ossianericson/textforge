@@ -6,12 +6,13 @@ import { validateParsedSpec } from './schema.js';
 import { buildBadgeCss, loadBadgeConfig } from './badges.js';
 import { parseSpecFile } from './parsers/index.js';
 import { applyBadgeClasses } from './parsers/badge-resolver.js';
+import { loadTopicRenderConfig, resolveRendererTemplatePath } from './renderers/registry.js';
 import { escapeHtml, sanitizeUrl } from './utils/sanitize.js';
 import { DecisionTreeCompilerError, ERROR_CODES } from './errors.js';
 import type { ErrorCode } from './errors.js';
 import { getConfig } from '#config';
 import { createLogger } from '#logger';
-import { parseArgs } from './cli-utils.js';
+import { buildTopicOutputName, parseArgs, resolveTopic } from './cli-utils.js';
 import type { DocLink, ParsedSpec, QuestionMap, ResultMap, SupportSection } from './types.js';
 
 const logger = createLogger({ component: 'compiler' });
@@ -22,7 +23,7 @@ const SEARCH_PLACEHOLDER = 'Search services... (e.g., PostgreSQL, Redis, ETL)';
 
 interface CompileOptions {
   specPath: string;
-  templatePath: string;
+  templatePath?: string;
   outputPath: string;
   promptPath?: string;
 }
@@ -258,6 +259,10 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
   const config = getConfig();
   const topic = path.basename(path.dirname(specPath || ''));
   const searchEnabled = SEARCH_TOPICS.has(topic);
+  const renderConfig = loadTopicRenderConfig(specPath, config.defaultRenderer);
+  const resolvedTemplatePath = templatePath
+    ? path.resolve(templatePath)
+    : resolveRendererTemplatePath(renderConfig.renderer, config.rootDir);
   if (!specPath || !fs.existsSync(specPath)) {
     throw new DecisionTreeCompilerError(`Spec file not found: ${specPath}`, {
       code: ERROR_CODES.SPEC_NOT_FOUND,
@@ -265,8 +270,8 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
     });
   }
 
-  if (!templatePath || !fs.existsSync(templatePath)) {
-    throw new DecisionTreeCompilerError(`Template file not found: ${templatePath}`, {
+  if (!resolvedTemplatePath || !fs.existsSync(resolvedTemplatePath)) {
+    throw new DecisionTreeCompilerError(`Template file not found: ${resolvedTemplatePath}`, {
       code: ERROR_CODES.TEMPLATE_NOT_FOUND,
       suggestion: 'Check the template path or pass --template with a valid file.',
     });
@@ -328,7 +333,7 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
   failOnWarnings(warnings);
 
   const templateContents = readFileSafely(
-    templatePath,
+    resolvedTemplatePath,
     ERROR_CODES.TEMPLATE_READ_FAILED,
     'Verify the template file exists and is readable.'
   );
@@ -345,6 +350,10 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
   const questionsJson = JSON.stringify(parsed.questions, null, 2).replace(/<\//g, '<\\/');
   const resultsJson = JSON.stringify(resultsWithSections, null, 2).replace(/<\//g, '<\\/');
   const progressStepsJson = JSON.stringify(parsed.progressSteps, null, 2).replace(/<\//g, '<\\/');
+  const renderOptionsJson = JSON.stringify(renderConfig.options || {}, null, 2).replace(
+    /<\//g,
+    '<\\/'
+  );
 
   const html = template({
     title: parsed.title.main || 'Decision Tree',
@@ -353,6 +362,7 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
     questionsJson,
     resultsJson,
     progressStepsJson,
+    renderOptionsJson,
     searchEnabled,
     searchCollapsed: true,
     searchLabel: SEARCH_LABEL,
@@ -391,18 +401,27 @@ function main(): void {
   const topic = typeof values.topic === 'string' ? values.topic.trim() : '';
   const specValue = typeof values.spec === 'string' ? values.spec : '';
   const templateValue = typeof values.template === 'string' ? values.template : '';
+  const templateOverride = templateValue || config.templatePathOverride || '';
   const outputValue = typeof values.output === 'string' ? values.output : '';
-  const specPath = specValue || (topic ? path.join(config.decisionTreesDir, topic, 'spec.md') : '');
-  const templatePath = templateValue || config.templatePath;
-  const outputName = `${topic}-tree.html`;
+  const resolvedTopic = topic ? resolveTopic(config.decisionTreesDir, topic) : null;
+  const specPath =
+    specValue ||
+    (resolvedTopic
+      ? path.join(config.decisionTreesDir, ...resolvedTopic.split('/'), 'spec.md')
+      : '');
+  const outputName = !resolvedTopic
+    ? `${topic}-tree.html`
+    : topic.includes('/') || topic.includes('\\')
+      ? buildTopicOutputName(resolvedTopic)
+      : `${path.basename(resolvedTopic)}-tree.html`;
   const outputPath = outputValue || (topic ? path.join(config.outputDir, outputName) : '');
 
-  if (!specPath || !templatePath || !outputPath) {
+  if (!specPath || !outputPath) {
     logger.error(
       'Usage: node dist/compiler/index.js --topic <topic> [--template <template.html>] [--output <output.html>]'
     );
     logger.error(
-      'Or: node dist/compiler/index.js --spec <spec.md> --template <template.html> --output <output.html>'
+      'Or: node dist/compiler/index.js --spec <spec.md> [--template <template.html>] --output <output.html>'
     );
     process.exit(1);
   }
@@ -410,8 +429,8 @@ function main(): void {
   try {
     compileDecisionTree({
       specPath: path.resolve(specPath),
-      templatePath: path.resolve(templatePath),
       outputPath: path.resolve(outputPath),
+      ...(templateOverride ? { templatePath: templateOverride } : {}),
     });
   } catch (error) {
     const err = error as { code?: string; message?: string; suggestion?: string };

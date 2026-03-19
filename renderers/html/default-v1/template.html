@@ -1143,6 +1143,8 @@
 
     const progressSteps = {{{progressStepsJson}}};
 
+    const renderOptions = {{{renderOptionsJson}}};
+
     // Rendering contract:
     // HTML fields: infoBox, infoNote, overview, footnote, additionalConsiderations,
     // costProfile items, tierComparison items, networking essentials items,
@@ -1156,6 +1158,14 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function isRenderOptionEnabled(key, defaultValue) {
+      if (!renderOptions || typeof renderOptions !== 'object') {
+        return defaultValue;
+      }
+      var value = renderOptions[key];
+      return typeof value === 'boolean' ? value : defaultValue;
     }
 
     const state = {
@@ -2236,7 +2246,7 @@
         .concat(extractFitWarnings(selectedComputeConfig ? selectedComputeConfig.items : []));
       var platformWarnings = inlineWarnings;
 
-      var docsHtml = result.docs && result.docs.length
+      var docsHtml = isRenderOptionEnabled('showDocsSection', true) && result.docs && result.docs.length
         ? '<div class="result-section"><h3>Documentation</h3><div class="doc-list">' +
           result.docs.map(function (doc) {
             return '<a href="' + doc.url + '" target="_blank" rel="noopener noreferrer">' +
@@ -2247,6 +2257,9 @@
       var addConsHtml = result.additionalConsiderations
         ? '<div class="additional-considerations"><h4>Additional Considerations</h4><p>' +
           result.additionalConsiderations + '</p></div>'
+        : '';
+      var contactHtml = isRenderOptionEnabled('showContactSection', true)
+        ? renderContactSection(result)
         : '';
 
       var sectionsHtml = renderSections(sections, result, platformWarnings);
@@ -2281,13 +2294,15 @@
 
           addConsHtml +
 
-          renderContactSection(result) +
+          contactHtml +
 
           '<div class="action-buttons">' +
-            (result.docs && result.docs.length
+            (isRenderOptionEnabled('showDocsButton', true) && result.docs && result.docs.length
               ? '<a class="btn btn-primary" href="' + result.docs[0].url + '" target="_blank" rel="noopener noreferrer">View Documentation <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span></a>'
               : '') +
-            '<button class="btn btn-secondary" id="copy-link-btn">\uD83D\uDD17 Copy Link</button>' +
+            (isRenderOptionEnabled('showCopyLinkButton', true)
+              ? '<button class="btn btn-secondary" id="copy-link-btn">\uD83D\uDD17 Copy Link</button>'
+              : '') +
             '<button class="btn btn-secondary" id="restart-result-btn">Start Over</button>' +
           '</div>' +
         '</div>';

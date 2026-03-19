@@ -103,6 +103,11 @@ const BadgeSchema = z.object({
   className: z.string(),
 });
 
+const CopyBlockSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+});
+
 const ResultSchema = z
   .object({
     title: z.string(),
@@ -116,6 +121,7 @@ const ResultSchema = z
     searchTags: z.array(z.string()).optional(),
     docs: z.array(DocLinkSchema),
     additionalConsiderations: z.string(),
+    copyBlocks: z.array(CopyBlockSchema).optional(),
   })
   .passthrough();
 

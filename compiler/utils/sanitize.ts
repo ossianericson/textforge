@@ -1,4 +1,4 @@
-const ALLOWED_PROTOCOLS = new Set(['https:', 'http:']);
+const ALLOWED_PROTOCOLS = new Set(['https:', 'http:', 'mailto:']);
 
 export function sanitizeUrl(raw: string): string {
   const trimmed = String(raw || '').trim();

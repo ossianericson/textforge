@@ -88,7 +88,7 @@ async function run(): Promise<void> {
 
 function printHelp(): void {
   process.stdout.write(`
-  @if/decision-tree-cli
+  textforge CLI
 
   Commands:
     init <topic>          Scaffold a new spec from template
@@ -102,7 +102,7 @@ function printHelp(): void {
     dtb validate --fix
     dtb compile --topic compute
     dtb compile --watch
-    dtb compile --mode quiz --spec quiz/example/spec.md --output output/example-quiz.html
+    dtb compile --mode quiz --spec quiz/public/example/spec.md --output output/example-quiz.html
   `);
 }
 

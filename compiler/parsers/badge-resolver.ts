@@ -41,6 +41,36 @@ function normalizeBadgeToken(value: string): string {
   return (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+function extractExplicitBadgeClass(
+  techTags: string[] | undefined,
+  classNames: string[]
+): string | null {
+  if (!Array.isArray(techTags) || !techTags.length) {
+    return null;
+  }
+
+  const validClasses = new Set(classNames.map((name) => name.toLowerCase()));
+  for (const tag of techTags) {
+    const match = /^\.badge\.([a-z0-9-]+)$/i.exec((tag || '').trim());
+    if (!match || !match[1]) {
+      continue;
+    }
+    if (validClasses.has(match[1].toLowerCase())) {
+      return match[1].toLowerCase();
+    }
+  }
+
+  return null;
+}
+
+function stripExplicitBadgeTags(techTags: string[] | undefined): string[] {
+  if (!Array.isArray(techTags)) {
+    return [];
+  }
+
+  return techTags.filter((tag) => !/^\.badge\.[a-z0-9-]+$/i.test((tag || '').trim()));
+}
+
 function resolveBadgeClass(
   normalizedBadge: string,
   classNames: string[]
@@ -89,6 +119,14 @@ function applyBadgeClasses(results: ResultMap, badgeCss: string): ResultMap {
   }
 
   Object.values(results).forEach((result) => {
+    const explicitClass = extractExplicitBadgeClass(result.techTags, classNames);
+    result.techTags = stripExplicitBadgeTags(result.techTags);
+
+    if (explicitClass) {
+      result.badge.className = explicitClass;
+      return;
+    }
+
     const normalizedBadge = normalizeBadgeToken(result.badge.text);
     const { className, reason } = resolveBadgeClass(normalizedBadge, classNames);
     if (reason === 'default' && process.env.NODE_ENV !== 'test') {

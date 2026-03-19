@@ -12,6 +12,8 @@ interface TemplateOption {
   description: string;
 }
 
+type TopicScope = 'internal' | 'public';
+
 const TEMPLATES: TemplateOption[] = [
   {
     key: 'standard',
@@ -40,8 +42,12 @@ const TEMPLATES: TemplateOption[] = [
 ];
 
 function usage(): void {
-  console.log('Usage: npm run init -- <topic> [--template standard|dropdown|matrix|blank]');
+  console.log(
+    'Usage: npm run init -- <topic> [--scope internal|public] [--template standard|dropdown|matrix|blank]'
+  );
   console.log('Example: npm run init -- my-topic');
+  console.log('');
+  console.log('Scope defaults to internal when that folder exists, otherwise public.');
   console.log('');
   console.log('Templates:');
   for (const template of TEMPLATES) {
@@ -89,6 +95,34 @@ async function selectTemplate(): Promise<TemplateOption> {
   return TEMPLATES[index] ?? TEMPLATES[0]!;
 }
 
+function parseScope(args: string[]): TopicScope | undefined {
+  const flagIndex = args.indexOf('--scope');
+  if (flagIndex === -1) {
+    return undefined;
+  }
+
+  const rawScope = args[flagIndex + 1]?.trim().toLowerCase();
+  if (rawScope === 'internal' || rawScope === 'public') {
+    return rawScope;
+  }
+
+  console.error(`Unknown scope: ${rawScope || '(missing)'}`);
+  usage();
+  process.exit(1);
+}
+
+function resolveScope(
+  config: ReturnType<typeof getConfig>,
+  requestedScope: TopicScope | undefined
+): TopicScope {
+  if (requestedScope) {
+    return requestedScope;
+  }
+
+  const internalDir = path.join(config.decisionTreesDir, 'internal');
+  return fs.existsSync(internalDir) ? 'internal' : 'public';
+}
+
 export async function initTopic(topicOverride?: string): Promise<void> {
   const args = process.argv.slice(2);
   let topicRaw = topicOverride ?? '';
@@ -99,6 +133,10 @@ export async function initTopic(topicOverride?: string): Promise<void> {
         continue;
       }
       if (arg === '--template') {
+        i += 1;
+        continue;
+      }
+      if (arg === '--scope') {
         i += 1;
         continue;
       }
@@ -120,8 +158,9 @@ export async function initTopic(topicOverride?: string): Promise<void> {
 
   const template = await selectTemplate();
   const config = getConfig();
+  const scope = resolveScope(config, parseScope(args));
   const templateSpecPath = path.join(config.rootDir, 'core', template.file);
-  const targetDir = path.join(config.decisionTreesDir, topic);
+  const targetDir = path.join(config.decisionTreesDir, scope, topic);
   const specPath = path.join(targetDir, 'spec.md');
 
   if (!fs.existsSync(templateSpecPath)) {
@@ -161,8 +200,8 @@ export async function initTopic(topicOverride?: string): Promise<void> {
   console.log('Next steps:');
   console.log(`  1. Edit ${specPath}`);
   console.log('  2. npm run validate:spec');
-  console.log(`  3. npm run compile:topic -- ${topic}`);
-  console.log(`  4. Open output/${topic}-tree.html`);
+  console.log(`  3. npm run compile:topic -- ${scope}/${topic}`);
+  console.log(`  4. Open output/${scope}-${topic}-tree.html`);
 
   try {
     execSync('npm run validate:spec 2>&1', { encoding: 'utf8', timeout: 10_000 });
