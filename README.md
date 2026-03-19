@@ -63,14 +63,8 @@ npm install
 # 2. Build TypeScript
 npm run build
 
-# 3. Setup local repo defaults
-npm run setup
-
-# 4. Compile the public examples
+# 3. Compile the public examples
 npm run compile:public
-
-# 5. Run tests
-npm test
 ```
 
 Open `output/example-multicloud-compute-tree.html` in your browser.
@@ -93,14 +87,6 @@ That command builds:
 
 - `decision-trees/public/example-multicloud-compute/spec.md`
 - `quiz/public/example/spec.md`
-
-To create a clean public release snapshot:
-
-```bash
-npm run export:public
-```
-
-That command verifies the internal source repository, copies only the public allowlist into `dist/public-export/`, writes the public README and public package metadata into the export snapshot, scans for blocked internal strings, and compiles the public examples.
 
 ## Examples
 
@@ -246,9 +232,11 @@ Review against [decision-tree.rules.md](decision-tree.rules.md) before promoting
 | `npm run compile:quiz`             | Build the public quiz HTML example                                     |
 | `npm run validate:spec`            | Check for spec errors                                                  |
 | `npm run validate:spec:fix`        | Auto-fix common issues                                                 |
-| `npm run export:public`            | Stage a public-ready repository export                                 |
-| `npm test`                         | Run tests                                                              |
 | `npm run build`                    | TypeScript build                                                       |
+| `npm run typecheck`                | Run the TypeScript compiler without emitting files                     |
+| `npm run lint`                     | Lint the repository                                                    |
+| `npm run lint:fix`                 | Fix lint issues where possible                                         |
+| `npm run format`                   | Format supported source and docs files                                 |
 
 Run these commands from the cloned repository root.
 
