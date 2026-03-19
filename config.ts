@@ -8,6 +8,8 @@ export interface Config {
   decisionTreesDir: string;
   outputDir: string;
   templatePath: string;
+  templatePathOverride: string | null;
+  defaultRenderer: string;
   badgePath: string;
 }
 
@@ -20,6 +22,14 @@ function readEnv(key: string, fallback: string): string {
     return value;
   }
   return fallback;
+}
+
+function readOptionalEnv(key: string): string | null {
+  const value = process.env[key];
+  if (value && String(value).trim()) {
+    return String(value).trim();
+  }
+  return null;
 }
 
 let envLoaded = false;
@@ -38,7 +48,7 @@ function loadEnv(): void {
   }
 
   const result = dotenv.config({
-    quiet: process.env.NODE_ENV === 'test',
+    quiet: true,
   } as dotenv.DotenvConfigOptions);
   if (result.error && process.env.NODE_ENV === 'production') {
     throw new Error(`Failed to load .env: ${result.error.message}`);
@@ -46,11 +56,16 @@ function loadEnv(): void {
 }
 
 function buildConfig(): Config {
+  const templatePathOverride = readOptionalEnv('DTB_TEMPLATE_PATH');
   return {
     rootDir,
     decisionTreesDir: readEnv('DTB_DECISION_TREES_DIR', path.join(rootDir, 'decision-trees')),
     outputDir: readEnv('DTB_OUTPUT_DIR', path.join(rootDir, 'output')),
-    templatePath: readEnv('DTB_TEMPLATE_PATH', path.join(rootDir, 'core', 'base-template.html')),
+    templatePath:
+      templatePathOverride ||
+      path.join(rootDir, 'renderers', 'html', 'default-v1', 'template.html'),
+    templatePathOverride,
+    defaultRenderer: readEnv('DTB_RENDERER', 'html/default-v1'),
     badgePath: readEnv('DTB_BADGE_PATH', path.join(rootDir, 'core', 'badges.yml')),
   };
 }

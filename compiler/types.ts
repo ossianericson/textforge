@@ -96,6 +96,11 @@ export interface Warning {
 
 export type WarningBlock = Warning;
 
+export interface CopyBlock {
+  title: string;
+  content: string;
+}
+
 export interface Result {
   title: string;
   breadcrumb?: string;
@@ -130,6 +135,7 @@ export interface Result {
   responsibility?: string[];
   responsibilityLinks?: DocLink[];
   supportSection?: SupportSection;
+  copyBlocks?: CopyBlock[];
 }
 
 export type ResultCard = Result;

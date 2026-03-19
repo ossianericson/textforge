@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
 import chokidar from 'chokidar';
 import { compileDecisionTree } from '#compiler/index';
-import { listTopics } from '#compiler/cli-utils';
+import { buildTopicOutputName, listTopics } from '#compiler/cli-utils';
 import { getConfig, type Config } from '#config';
 import { createLogger } from '#logger';
 
@@ -26,16 +26,15 @@ function getChalk(): typeof import('chalk').default {
   return chalk;
 }
 
-function compileTopic(config: Config, topic: string, templatePath: string): void {
+function compileTopic(config: Config, topic: string, templatePath?: string): void {
   const chalkInstance = getChalk();
-  const outputName = topic.startsWith('azure-') ? `${topic}-tree.html` : `azure-${topic}-tree.html`;
+  const outputName = buildTopicOutputName(topic);
   const start = Date.now();
   logger.info(chalkInstance.cyan(`Compiling ${topic}...`), { topic });
   compileDecisionTree({
-    specPath: path.join(config.decisionTreesDir, topic, 'spec.md'),
-    promptPath: path.join(config.rootDir, 'docs', 'prompts', `${topic}-prompt.md`),
-    templatePath,
+    specPath: path.join(config.decisionTreesDir, ...topic.split('/'), 'spec.md'),
     outputPath: path.join(config.outputDir, outputName),
+    ...(templatePath ? { templatePath } : {}),
   });
   logger.info(chalkInstance.green(`Compiled ${topic} in ${Date.now() - start}ms.`), { topic });
 }
@@ -63,10 +62,16 @@ export async function startWatch(): Promise<void> {
   const config = getConfig();
   const decisionTreesDir = config.decisionTreesDir;
   const coreDir = path.join(config.rootDir, 'core');
-  const templatePath = config.templatePath;
+  const renderersDir = path.join(config.rootDir, 'renderers');
+  const templatePath = config.templatePathOverride ?? undefined;
 
   const watcher = chokidar.watch(
-    [path.join(decisionTreesDir, '**', 'spec.md'), path.join(coreDir, '**', '*')],
+    [
+      path.join(decisionTreesDir, '**', 'spec.md'),
+      path.join(decisionTreesDir, '**', 'render.json'),
+      path.join(coreDir, '**', '*'),
+      path.join(renderersDir, '**', '*'),
+    ],
     {
       ignoreInitial: true,
     }
@@ -95,16 +100,25 @@ export async function startWatch(): Promise<void> {
   }
 
   watcher.on('all', (event: string, filePath: string) => {
-    if (filePath.startsWith(coreDir)) {
+    if (filePath.startsWith(coreDir) || filePath.startsWith(renderersDir)) {
       pending.all = true;
       scheduleBuild();
       return;
     }
 
     const relative = path.relative(decisionTreesDir, filePath);
-    const parts = relative.split(path.sep);
-    if (parts.length >= 2 && parts[1] === 'spec.md') {
-      const topic = parts[0];
+    const normalized = relative.split(path.sep).join('/');
+    if (normalized.endsWith('/spec.md')) {
+      const topic = normalized.slice(0, -'/spec.md'.length);
+      if (topic) {
+        pending.topics.add(topic);
+      }
+      scheduleBuild();
+      return;
+    }
+
+    if (normalized.endsWith('/render.json')) {
+      const topic = normalized.slice(0, -'/render.json'.length);
       if (topic) {
         pending.topics.add(topic);
       }

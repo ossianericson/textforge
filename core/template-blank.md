@@ -80,7 +80,7 @@
 
 **Contact:**
 
-▸ [maintainers]
+▸ [team-alias@if.xx]
 
 ---
 
@@ -112,7 +112,7 @@ Reach out to the architecture team for personalized recommendations.
 
 **Contact:**
 
-▸ [maintainers]
+▸ [team-alias@if.xx]
 
 ---
 

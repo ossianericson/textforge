@@ -67,6 +67,7 @@ const DROPDOWN_LEFT_HEADER_PATTERN: RegExp = /^\s*\*\*Dropdown Left\*\*:?.*$/i;
 const DROPDOWN_RIGHT_HEADER_PATTERN: RegExp = /^\s*\*\*Dropdown Right\*\*:?.*$/i;
 const MATRIX_HEADER_PATTERN: RegExp = /^\s*\*\*Matrix\*\*:?.*$/i;
 const TIER_MATRIX_HEADER_PATTERN: RegExp = /^\s*\*\*Tier Matrix\*\*:?.*$/i;
+const COPY_BLOCK_HEADER_PATTERN: RegExp = /^\s*\*\*Copy Block\s*:/i;
 const TYPE_DROPDOWN_PATTERN: RegExp = /^\s*\*\*Type\*\*:\s*dropdown\s*$/i;
 const TYPE_DROPDOWN_PAIR_PATTERN: RegExp = /^\s*\*\*Type\*\*:\s*dropdown-pair\s*$/i;
 const RANGE_PATTERN: RegExp = new RegExp(
@@ -145,6 +146,7 @@ export function runValidation(options: { fix: boolean }): void {
     let inTierMatrix = false;
     let currentQuestionId: string | null = null;
     let inResultCard = false;
+    let inCopyBlock = false;
     const questionOrder: string[] = [];
     const questionLineMap = new Map<string, number>();
     const questionHasUnsure = new Map<string, boolean>();
@@ -219,11 +221,19 @@ export function runValidation(options: { fix: boolean }): void {
           currentResultBlock = { id: resultId, start: index, end: lines.length - 1 };
           resultBlocks.push(currentResultBlock);
           inResultCard = true;
+          inCopyBlock = false;
         }
       }
 
       if (/^##\s+/.test(line) && !/^##\s+Result Cards/i.test(line)) {
         inResultCard = false;
+        inCopyBlock = false;
+      }
+
+      if (inResultCard && COPY_BLOCK_HEADER_PATTERN.test(line)) {
+        inCopyBlock = true;
+      } else if (inCopyBlock && (/^\s*\*\*/.test(line) || /^---\s*$/.test(line))) {
+        inCopyBlock = false;
       }
 
       if (/^\s*\*\*Options\*\*:?.*$/i.test(line)) {
@@ -339,9 +349,9 @@ export function runValidation(options: { fix: boolean }): void {
       if (
         !inMermaid &&
         inResultCard &&
+        !inCopyBlock &&
         /^(?:\s*[-*▸]\s+)/.test(line) &&
-        (/<\s*\/?\s*[a-z][^>]*>/i.test(line) ||
-          /&lt;\s*\/?\s*[a-z][^&]*&gt;/i.test(line))
+        (/<\s*\/?\s*[a-z][^>]*>/i.test(line) || /&lt;\s*\/?\s*[a-z][^&]*&gt;/i.test(line))
       ) {
         addIssue(
           context,
@@ -351,30 +361,16 @@ export function runValidation(options: { fix: boolean }): void {
         );
       }
 
-      if (!inMermaid && inResultCard) {
+      if (!inMermaid && inResultCard && !inCopyBlock) {
         const hasEmail = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(line);
         const hasUrl = /https?:\/\//i.test(line);
 
-        if (/Collaboration Channel/i.test(line) && !hasUrl) {
-          addIssue(
-            context,
-            specFile,
-            'Collaboration channel lines must include a URL.',
-            index + 1
-          );
+        if (/Cloud Teams Channel/i.test(line) && !hasUrl) {
+          addIssue(context, specFile, 'Cloud Teams Channel lines must include a URL.', index + 1);
         }
 
-        if (
-          /Contact:\s*[^*]/i.test(line) &&
-          !/^\s*\*\*Contact:\*\*\s*$/i.test(line) &&
-          !hasEmail
-        ) {
-          addIssue(
-            context,
-            specFile,
-            'Contact lines must include an email address.',
-            index + 1
-          );
+        if (/Contact:\s*[^*]/i.test(line) && !/^\s*\*\*Contact:\*\*\s*$/i.test(line) && !hasEmail) {
+          addIssue(context, specFile, 'Contact lines must include an email address.', index + 1);
         }
       }
 
@@ -595,22 +591,17 @@ export function runValidation(options: { fix: boolean }): void {
         optionTextsPerQuestion.set(currentQuestionId, texts);
       }
 
-      if (!inMermaid) {
-        const linkMatches = line.matchAll(/\(([^)]+)\)/g);
-        for (const match of linkMatches) {
-          const url = (match[1] ?? '').trim();
-          if (!url) continue;
-          if (/^https:\/\//i.test(url)) continue;
-          if (/^[a-z]+:/i.test(url) || /\./.test(url)) {
-            addWarning(
-              context,
-              specFile,
-              'Links should be absolute (https://...).',
-              index + 1
-            );
-            break;
-          }
-        }
+      if (
+        !inMermaid &&
+        /\(confluence\.ifint\.biz/i.test(line) &&
+        !/https?:\/\/confluence\.ifint\.biz/i.test(line)
+      ) {
+        addWarning(
+          context,
+          specFile,
+          'Documentation links should use absolute URLs when a full external or internal reference is required.',
+          index + 1
+        );
       }
 
       if (!inMermaid) {
@@ -620,16 +611,10 @@ export function runValidation(options: { fix: boolean }): void {
           const url = urlMatch[0];
           if (url.startsWith('http://') && !url.startsWith('http://localhost')) {
             const columnStart = line.indexOf(url);
-            addWarning(
-              context,
-              specFile,
-              `Insecure URL found: "${url}". Use HTTPS.`,
-              index + 1,
-              {
-                columnStart,
-                columnEnd: columnStart + url.length,
-              }
-            );
+            addWarning(context, specFile, `Insecure URL found: "${url}". Use HTTPS.`, index + 1, {
+              columnStart,
+              columnEnd: columnStart + url.length,
+            });
           }
         }
       }

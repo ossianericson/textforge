@@ -1,6 +1,6 @@
 # textforge Deep Dive
 
-This document collects the detailed workflow, architecture, deployment, and troubleshooting guidance for textforge.
+This document collects the detailed workflow, architecture, and troubleshooting guidance for textforge.
 
 Related references:
 
@@ -9,51 +9,30 @@ Related references:
 
 ## Deterministic Workflow
 
-Use the command list in [README.md](../README.md) and [decision-tree.rules.md](../decision-tree.rules.md) as the single source of truth.
+Use [README.md](../README.md) for the supported commands and [decision-tree.rules.md](../decision-tree.rules.md) for authoring rules.
 
 Notes:
 
 - Badge colors are defined in [core/badges.yml](../core/badges.yml).
-- `docs/prompts/[topic]-prompt.md` is optional and not used by the compiler.
-
-## Rules and Standards
-
-Before editing any spec file, check:
-
-| File                                                | Purpose            | When to Use                                      |
-| --------------------------------------------------- | ------------------ | ------------------------------------------------ |
-| [decision-tree.rules.md](../decision-tree.rules.md) | Syntax constraints | Before every spec edit                           |
-| [core/style-guide.md](../core/style-guide.md)       | Universal styling  | When updating templates or reviewing HTML output |
-| [core/template.md](../core/template.md)             | Blank spec starter | Creating new tree                                |
+- Generator prompts live in [docs/generators](../docs/generators/).
 
 ## Repository Structure
 
-```
+```text
 textforge/
-├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── decision-tree.rules.md
-├── compiler/
-├── core/
-│   ├── base-template.html
-│   ├── quiz-template.html
-│   ├── badges.yml
-│   ├── style-guide.md
-│   ├── template.md
-│   └── template-blank.md
 ├── decision-trees/
-│   └── example-multicloud-compute/spec.md
+│   ├── internal/
+│   └── public/
 ├── quiz/
-│   └── example-multicloud-compute/spec.md
+│   ├── internal/
+│   └── public/
 ├── docs/
 │   ├── deep-dive.md
 │   ├── generators/
-│   │   ├── decision-tree-spec-generator-prompt.md
-│   │   └── quiz-spec-generator-prompt.md
-│   └── prompts/
-├── output/
-│   └── production/
+│   └── readme/
+├── compiler/
+├── core/
+├── renderers/
 ├── scripts/
 └── tools/
 ```
@@ -74,7 +53,9 @@ flowchart LR
 
 The compiler and parser pipeline are fully TypeScript and compile to dist/ for runtime use. Source lives under compiler/, and build output lives under dist/.
 
-Quiz output mode is a prototype example, not a fully tested feature. See the README for the example compile command and output location.
+Quiz output mode is a secondary example output type. See the README for the current public example command and output location.
+
+Renderer templates now live under `renderers/`, with `html/default-v1` as the default profile unless a topic or environment override selects something else.
 
 ---
 
@@ -87,7 +68,7 @@ Reusable AI generator prompts live in `docs/generators/`:
 | `decision-tree-spec-generator-prompt.md` | Generate a new decision tree spec |
 | `quiz-spec-generator-prompt.md`          | Generate a quiz or study set spec |
 
-Per-tree author notes (not used by the compiler) live in `docs/prompts/`.
+Per-tree author notes can live outside the public boundary when needed.
 
 ## Tools
 
@@ -102,7 +83,7 @@ Checks:
 - Required result sections (Best For, Key Benefits, Considerations, When NOT to use, Tech Tags, Additional Considerations)
 - "I don't know"/"Unsure" option on button questions
 - Info Box placement above Options
-- Confluence link format (absolute `https://your-confluence-instance/...`)
+- Link formatting and navigation consistency
 - Underscores in navigation targets
 - progressSteps start/end values and even spacing to 80%
 - UTF-8 without BOM
@@ -126,28 +107,31 @@ Husky + lint-staged enforce ESLint and Prettier on staged source files. Run `npm
 
 ## Output Directory Convention
 
-```
+```text
 output/
 ├── example-multicloud-compute-tree.html
-└── production/
+├── example-quiz.html
+├── internal-azure-compute-tree.html
+└── ...
 ```
-
-## Confluence Deployment
-
-1. Upload output HTML to Confluence page attachments.
-2. Use the HTML macro to render the file via iframe.
-3. Adjust the iframe `height` in the inline style if the default 1400px is too short or tall.
 
 See [decision-tree.rules.md](../decision-tree.rules.md) for the validation checklist.
 
 ## Production Workflow
 
-1. Edit spec in decision-trees/[topic]/spec.md
+1. Edit or add a spec under `decision-trees/internal/` or `decision-trees/public/`
 2. Run `npm run build && npm run validate:spec`
 3. Generate HTML to output/
 4. Review against [decision-tree.rules.md](../decision-tree.rules.md)
-5. Copy approved HTML to output/production/
-6. Upload production file to Confluence
+5. Use `npm run export:public` when preparing a public release
+
+`npm run export:public` is intentionally structure-first:
+
+1. It verifies the command is running from the internal source repository.
+2. It copies only an explicit public allowlist into `dist/public-export/`.
+3. It writes the public `README.md` directly into the export snapshot.
+4. It writes a reduced public `package.json` from an allowlist of scripts.
+5. It scans the staged export for blocked internal strings and compiles the public examples.
 
 ## Troubleshooting
 
@@ -180,14 +164,14 @@ for all `npm run` commands; PowerShell is not supported.
 
 ## Examples
 
-- [decision-trees/example-multicloud-compute](../decision-trees/example-multicloud-compute/) — 19 services across Azure, AWS, and GCP (button-based tree)
-- [quiz/example-multicloud-compute](../quiz/example-multicloud-compute/) — companion quiz and study set for the compute tree
+- [decision-trees/public/example-multicloud-compute](../decision-trees/public/example-multicloud-compute/) — public decision tree example
+- [quiz/public/example](../quiz/public/example/) — public quiz example
 
 ## Ownership and Support
 
 - Core files: decision-tree.rules.md, core/, tools/
 - Specs: owners of each topic under decision-trees/
-- Prompts (optional): docs/prompts/
-- HTML output: owners of output/ and output/production/
+- Public release flow: scripts/export-public.ts and scripts/internal-strings.ts
+- HTML output: owners of output/
 
 If unsure, start with [decision-tree.rules.md](../decision-tree.rules.md).

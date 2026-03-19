@@ -29,6 +29,10 @@
       --color-warning: #f59e0b;
       --color-advanced: #f59e0b;
       --color-info: #3b82f6;
+      --bg-tertiary: rgba(255, 255, 255, 0.04);
+      --border-color: var(--color-card-border);
+      --text-secondary: var(--color-text-secondary);
+      --accent-primary: var(--color-recommended);
     }
 
     * {
@@ -783,10 +787,9 @@
       color: white;
     }
 
-    .badge.iaas { background: #3b82f6; }
-    .badge.paas { background: #8b5cf6; }
-    .badge.faas { background: #ec4899; }
+    .badge.urgent { background: #f59e0b; }
     .badge.standard { background: #10b981; }
+    .badge.advanced { background: #3b82f6; }
 
     .result-section h3 {
       font-size: 1.125rem;
@@ -837,6 +840,45 @@
 
     .ordered-list li {
       margin-bottom: 0.5rem;
+    }
+
+    .copy-block-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+      padding: 3.25rem 1rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      background: var(--bg-tertiary);
+    }
+
+    .copy-block-pre {
+      margin: 0;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font: 0.95rem/1.6 Consolas, 'Courier New', monospace;
+    }
+
+    .copy-block-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      min-height: 40px;
+      background: var(--accent-primary);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .copy-block-btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
     }
 
     .warning-box {
@@ -1740,15 +1782,14 @@
     "icon": "🖥️",
     "badge": {
       "text": "IaaS",
-      "className": "iaas"
+      "className": "advanced"
     },
     "techTags": [
       "Virtual Machines",
       "IaaS",
       "Windows",
       "Linux",
-      "Lift-and-shift",
-      ".badge.advanced"
+      "Lift-and-shift"
     ],
     "searchTags": [],
     "docs": [
@@ -1811,7 +1852,7 @@
     "icon": "🌐",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       ".NET",
@@ -1819,8 +1860,7 @@
       "Node.js",
       "Python",
       "PaaS",
-      "CI/CD",
-      ".badge.standard"
+      "CI/CD"
     ],
     "searchTags": [],
     "docs": [
@@ -1882,7 +1922,7 @@
     "icon": "📦",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Containers",
@@ -1890,8 +1930,7 @@
       "KEDA",
       "Dapr",
       "PaaS",
-      "Docker",
-      ".badge.standard"
+      "Docker"
     ],
     "searchTags": [],
     "docs": [
@@ -1952,15 +1991,14 @@
     "icon": "☁️",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Kubernetes",
       "AKS",
       "GitOps",
       "Containers",
-      "DevOps",
-      ".badge.standard"
+      "DevOps"
     ],
     "searchTags": [],
     "docs": [
@@ -2021,14 +2059,13 @@
     "icon": "⚙️",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "advanced"
     },
     "techTags": [
       "Kubernetes",
       "Microservices",
       "Custom Operators",
-      "Service Mesh",
-      ".badge.advanced"
+      "Service Mesh"
     ],
     "searchTags": [],
     "docs": [
@@ -2088,7 +2125,7 @@
     "icon": "⚡",
     "badge": {
       "text": "FaaS",
-      "className": "faas"
+      "className": "standard"
     },
     "techTags": [
       "Serverless",
@@ -2096,8 +2133,7 @@
       ".NET",
       "JavaScript",
       "Python",
-      "FaaS",
-      ".badge.standard"
+      "FaaS"
     ],
     "searchTags": [],
     "docs": [
@@ -2160,7 +2196,7 @@
     "icon": "🖥️",
     "badge": {
       "text": "IaaS",
-      "className": "iaas"
+      "className": "advanced"
     },
     "techTags": [
       "EC2",
@@ -2168,8 +2204,7 @@
       "Windows",
       "Linux",
       "Lift-and-shift",
-      "GPU",
-      ".badge.advanced"
+      "GPU"
     ],
     "searchTags": [],
     "docs": [
@@ -2232,7 +2267,7 @@
     "icon": "🌐",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Java",
@@ -2240,8 +2275,7 @@
       "Node.js",
       "Python",
       "PaaS",
-      "CI/CD",
-      ".badge.standard"
+      "CI/CD"
     ],
     "searchTags": [],
     "docs": [
@@ -2303,7 +2337,7 @@
     "icon": "📦",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Containers",
@@ -2311,8 +2345,7 @@
       "ECS",
       "Fargate",
       "PaaS",
-      "Docker",
-      ".badge.standard"
+      "Docker"
     ],
     "searchTags": [],
     "docs": [
@@ -2373,15 +2406,14 @@
     "icon": "☁️",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Kubernetes",
       "EKS",
       "GitOps",
       "Containers",
-      "Managed Nodes",
-      ".badge.standard"
+      "Managed Nodes"
     ],
     "searchTags": [],
     "docs": [
@@ -2442,15 +2474,14 @@
     "icon": "⚙️",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "advanced"
     },
     "techTags": [
       "Kubernetes",
       "EKS",
       "Self-Managed",
       "GPU",
-      "Custom CNI",
-      ".badge.advanced"
+      "Custom CNI"
     ],
     "searchTags": [],
     "docs": [
@@ -2510,7 +2541,7 @@
     "icon": "⚡",
     "badge": {
       "text": "FaaS",
-      "className": "faas"
+      "className": "standard"
     },
     "techTags": [
       "Serverless",
@@ -2518,8 +2549,7 @@
       "Lambda",
       "FaaS",
       "Python",
-      "Node.js",
-      ".badge.standard"
+      "Node.js"
     ],
     "searchTags": [],
     "docs": [
@@ -2582,7 +2612,7 @@
     "icon": "🖥️",
     "badge": {
       "text": "IaaS",
-      "className": "iaas"
+      "className": "advanced"
     },
     "techTags": [
       "Compute Engine",
@@ -2590,8 +2620,7 @@
       "Linux",
       "Windows",
       "GPU",
-      "Lift-and-shift",
-      ".badge.advanced"
+      "Lift-and-shift"
     ],
     "searchTags": [],
     "docs": [
@@ -2654,7 +2683,7 @@
     "icon": "⚡",
     "badge": {
       "text": "FaaS",
-      "className": "faas"
+      "className": "standard"
     },
     "techTags": [
       "Serverless",
@@ -2662,8 +2691,7 @@
       "Cloud Functions",
       "FaaS",
       "Python",
-      "Node.js",
-      ".badge.standard"
+      "Node.js"
     ],
     "searchTags": [],
     "docs": [
@@ -2727,7 +2755,7 @@
     "icon": "🌐",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "App Engine",
@@ -2735,8 +2763,7 @@
       "Node.js",
       "Python",
       "Java",
-      "Go",
-      ".badge.standard"
+      "Go"
     ],
     "searchTags": [],
     "docs": [
@@ -2798,7 +2825,7 @@
     "icon": "📦",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Containers",
@@ -2806,8 +2833,7 @@
       "PaaS",
       "Docker",
       "Microservices",
-      "Serverless",
-      ".badge.standard"
+      "Serverless"
     ],
     "searchTags": [],
     "docs": [
@@ -2869,15 +2895,14 @@
     "icon": "☁️",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "standard"
     },
     "techTags": [
       "Kubernetes",
       "GKE",
       "Autopilot",
       "GitOps",
-      "Containers",
-      ".badge.standard"
+      "Containers"
     ],
     "searchTags": [],
     "docs": [
@@ -2938,7 +2963,7 @@
     "icon": "⚙️",
     "badge": {
       "text": "PaaS",
-      "className": "paas"
+      "className": "advanced"
     },
     "techTags": [
       "Kubernetes",
@@ -2946,8 +2971,7 @@
       "Standard",
       "GPU",
       "TPU",
-      "Custom CNI",
-      ".badge.advanced"
+      "Custom CNI"
     ],
     "searchTags": [],
     "docs": [
@@ -3007,14 +3031,13 @@
     "icon": "🧭",
     "badge": {
       "text": "Standard",
-      "className": "standard"
+      "className": "urgent"
     },
     "techTags": [
       "Guidance",
       "Multi-cloud",
       "Architecture",
-      "Discovery",
-      ".badge.urgent"
+      "Discovery"
     ],
     "searchTags": [],
     "docs": [],
@@ -3094,6 +3117,13 @@
   "result": 100
 };
 
+    const renderOptions = {
+  "showDocsSection": true,
+  "showDocsButton": true,
+  "showCopyLinkButton": true,
+  "showContactSection": true
+};
+
     // Rendering contract:
     // HTML fields: infoBox, infoNote, overview, footnote, additionalConsiderations,
     // costProfile items, tierComparison items, networking essentials items,
@@ -3107,6 +3137,14 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function isRenderOptionEnabled(key, defaultValue) {
+      if (!renderOptions || typeof renderOptions !== 'object') {
+        return defaultValue;
+      }
+      var value = renderOptions[key];
+      return typeof value === 'boolean' ? value : defaultValue;
     }
 
     const state = {
@@ -3540,9 +3578,6 @@
       return matches;
     }
 
-    var emailRegex = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-    var emailRegexTest = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
-
     function renderContactSection(result) {
       var contacts = (result.contact && result.contact.length) ? result.contact : [];
       if (!contacts.length) {
@@ -3552,11 +3587,8 @@
           return self.indexOf(value) === index;
         });
       }
-      contacts = contacts.filter(function (contact) {
-        return !emailRegexTest.test(contact);
-      });
       if (!contacts.length) {
-        contacts = ['maintainers'];
+        return '';
       }
       return renderListSection('Contact', contacts);
     }
@@ -3621,11 +3653,10 @@
 
     function linkifyEmails(value) {
       if (!value) return value;
-      return value
-        .replace(emailRegex, '')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/\s+([,.;:])/g, '$1')
-        .trim();
+      return value.replace(
+        /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/gi,
+        '<a href="mailto:$1">$1</a>'
+      );
     }
 
     function applyInlineLinks(text, links) {
@@ -3689,6 +3720,38 @@
         }
         return '';
       }).join('');
+    }
+
+    function renderCopyBlocks(copyBlocks) {
+      if (!copyBlocks || !copyBlocks.length) return '';
+      return copyBlocks.map(function (copyBlock, index) {
+        var copyId = 'copy-block-' + index;
+        return '<div class="result-section copy-block-section"><h3>' + escapeHtml(copyBlock.title) + '</h3>' +
+          '<div class="copy-block-wrapper">' +
+            '<button class="copy-block-btn" type="button" data-copy-target="' + copyId + '">Copy</button>' +
+            '<pre class="copy-block-pre" id="' + copyId + '">' + escapeHtml(copyBlock.content || '') + '</pre>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function bindCopyBlockButtons() {
+      contentEl.querySelectorAll('.copy-block-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var targetId = button.getAttribute('data-copy-target');
+          var pre = targetId ? document.getElementById(targetId) : null;
+          if (!pre || !navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+            return;
+          }
+
+          navigator.clipboard.writeText(pre.textContent || '').then(function () {
+            button.textContent = 'Copied ✓';
+            setTimeout(function () {
+              button.textContent = 'Copy';
+            }, 2000);
+          });
+        });
+      });
     }
 
     /* ── Feature 1: Dropdown renderer ────────────────────── */
@@ -4162,7 +4225,7 @@
         .concat(extractFitWarnings(selectedComputeConfig ? selectedComputeConfig.items : []));
       var platformWarnings = inlineWarnings;
 
-      var docsHtml = result.docs && result.docs.length
+      var docsHtml = isRenderOptionEnabled('showDocsSection', true) && result.docs && result.docs.length
         ? '<div class="result-section"><h3>Documentation</h3><div class="doc-list">' +
           result.docs.map(function (doc) {
             return '<a href="' + doc.url + '" target="_blank" rel="noopener noreferrer">' +
@@ -4174,8 +4237,12 @@
         ? '<div class="additional-considerations"><h4>Additional Considerations</h4><p>' +
           result.additionalConsiderations + '</p></div>'
         : '';
+      var contactHtml = isRenderOptionEnabled('showContactSection', true)
+        ? renderContactSection(result)
+        : '';
 
       var sectionsHtml = renderSections(sections, result, platformWarnings);
+      var copyBlocksHtml = renderCopyBlocks(result.copyBlocks);
 
       contentEl.innerHTML =
         '<div id="result-' + resultId + '" class="result-card" role="article" aria-labelledby="result-title-' +
@@ -4194,6 +4261,7 @@
           warningHtml +
 
           sectionsHtml +
+          copyBlocksHtml +
 
           '<div class="tech-tags">' +
           (result.techTags || []).map(function (tag) { return '<span class="tech-tag">' + escapeHtml(tag) + '</span>'; }).join('') +
@@ -4205,13 +4273,15 @@
 
           addConsHtml +
 
-          renderContactSection(result) +
+          contactHtml +
 
           '<div class="action-buttons">' +
-            (result.docs && result.docs.length
+            (isRenderOptionEnabled('showDocsButton', true) && result.docs && result.docs.length
               ? '<a class="btn btn-primary" href="' + result.docs[0].url + '" target="_blank" rel="noopener noreferrer">View Documentation <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span></a>'
               : '') +
-            '<button class="btn btn-secondary" id="copy-link-btn">\uD83D\uDD17 Copy Link</button>' +
+            (isRenderOptionEnabled('showCopyLinkButton', true)
+              ? '<button class="btn btn-secondary" id="copy-link-btn">\uD83D\uDD17 Copy Link</button>'
+              : '') +
             '<button class="btn btn-secondary" id="restart-result-btn">Start Over</button>' +
           '</div>' +
         '</div>';
@@ -4220,6 +4290,8 @@
       if (restartResultBtn) {
         restartResultBtn.addEventListener('click', restart);
       }
+
+      bindCopyBlockButtons();
 
       // Feature 10: Copy link button
       var copyLinkBtn = document.getElementById('copy-link-btn');

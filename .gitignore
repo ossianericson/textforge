@@ -6,19 +6,6 @@ dist/
 
 # Compiled HTML output
 output/
-# Include the example artifacts so they can be committed and viewed directly from the repo
-!output/example-multicloud-compute-tree.html
-!output/example-multicloud-compute-quiz.html
-
-# Internal organization decision trees (private)
-decision-trees/azure-compute/
-decision-trees/azure-data-services/
-decision-trees/azure-troubleshooting/
-decision-trees/azure-dr-architecture/
-decision-trees/allcloudcompute/
-
-# Internal prompt and emphasis notes
-docs/prompts/
 
 # Internal staging copies
 repo-check-stage/

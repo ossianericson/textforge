@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { compileDecisionTree } from './index.js';
-import { listTopics, parseArgs } from './cli-utils.js';
+import { buildTopicOutputName, listTopics, parseArgs, resolveTopic } from './cli-utils.js';
 import { getConfig } from '#config';
 import { createLogger } from '#logger';
 
@@ -10,7 +10,9 @@ const logger = createLogger({ component: 'compile-all' });
 export function compileAll(templateOverride?: string): void {
   const config = getConfig();
   const decisionTreesDir = config.decisionTreesDir;
-  const templatePath = templateOverride ? path.resolve(templateOverride) : config.templatePath;
+  const templatePath = templateOverride
+    ? path.resolve(templateOverride)
+    : (config.templatePathOverride ?? undefined);
 
   const topics = listTopics(decisionTreesDir);
   if (!topics.length) {
@@ -26,13 +28,25 @@ export function compileAll(templateOverride?: string): void {
 export function compileSingle(topic: string, templateOverride?: string): void {
   const config = getConfig();
   const decisionTreesDir = config.decisionTreesDir;
-  const templatePath = templateOverride ? path.resolve(templateOverride) : config.templatePath;
-  const outputName = `${topic}-tree.html`;
+  const templatePath = templateOverride
+    ? path.resolve(templateOverride)
+    : (config.templatePathOverride ?? undefined);
+  const resolvedTopic = resolveTopic(decisionTreesDir, topic);
+
+  if (!resolvedTopic) {
+    logger.error('Topic not found.', { topic, decisionTreesDir });
+    process.exit(1);
+  }
+
+  const outputName =
+    topic.includes('/') || topic.includes('\\')
+      ? buildTopicOutputName(resolvedTopic)
+      : `${path.basename(resolvedTopic)}-tree.html`;
 
   compileDecisionTree({
-    specPath: path.join(decisionTreesDir, topic, 'spec.md'),
-    templatePath,
+    specPath: path.join(decisionTreesDir, ...resolvedTopic.split('/'), 'spec.md'),
     outputPath: path.join(config.outputDir, outputName),
+    ...(templatePath ? { templatePath } : {}),
   });
 }
 

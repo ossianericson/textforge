@@ -43,11 +43,14 @@ type SectionName =
   | 'iacRequirement'
   | 'drTestingCadence'
   | 'nextSteps'
+  | 'copyBlock'
   | null;
 
 type WarningCapture = { title: string; lines: string[]; collecting: boolean };
 
 type WarningBlockCapture = { lines: string[] };
+
+type CopyBlockCapture = { title: string; lines: string[] };
 
 type ServiceConfigType = 'data' | 'compute';
 
@@ -163,7 +166,21 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
 
   function isSectionHeader(line: string): boolean {
     const clean = line.replace(/\*+/g, '').replace(/:$/, '').trim().toLowerCase();
-    return SECTION_HEADERS.has(clean);
+    return clean.startsWith('copy block') || SECTION_HEADERS.has(clean);
+  }
+
+  function isCopyBlockHeader(line: string): boolean {
+    const clean = line.replace(/^\*\*/, '').replace(/\*\*$/, '').trim().toLowerCase();
+    return clean.startsWith('copy block');
+  }
+
+  function extractCopyBlockTitle(line: string): string {
+    const clean = line.replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
+    const colonIndex = clean.indexOf(':');
+    if (colonIndex === -1) {
+      return 'Copy Block';
+    }
+    return normalizeTextFn(clean.slice(colonIndex + 1).trim()) || 'Copy Block';
   }
 
   function finalizeWarningBlock(lines: string[]): WarningBlock | null {
@@ -204,6 +221,7 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
       currentSection: SectionName;
       warningCapture: WarningCapture | null;
       warningBlockCapture: WarningBlockCapture | null;
+      copyBlockCapture: CopyBlockCapture | null;
       groupActive: boolean;
       groupIds: string[];
       groupTitle: string;
@@ -215,6 +233,7 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
       currentSection: null,
       warningCapture: null,
       warningBlockCapture: null,
+      copyBlockCapture: null,
       groupActive: false,
       groupIds: [],
       groupTitle: '',
@@ -223,7 +242,23 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
       activeServiceName: null,
     };
 
+    const finalizeCopyBlockCapture = () => {
+      if (!context.current || !context.copyBlockCapture) {
+        return;
+      }
+      context.current.data.copyBlocks = context.current.data.copyBlocks || [];
+      context.current.data.copyBlocks.push({
+        title: context.copyBlockCapture.title,
+        content: context.copyBlockCapture.lines.join('\n'),
+      });
+      context.copyBlockCapture = null;
+      if (context.currentSection === 'copyBlock') {
+        context.currentSection = null;
+      }
+    };
+
     const commitCurrent = () => {
+      finalizeCopyBlockCapture();
       if (context.current) {
         results[context.current.id] = context.current.data;
       }
@@ -757,6 +792,18 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
         return true;
       }
 
+      if (isCopyBlockHeader(line)) {
+        finalizeCopyBlockCapture();
+        context.activeServiceType = null;
+        context.activeServiceName = null;
+        context.currentSection = 'copyBlock';
+        context.copyBlockCapture = {
+          title: extractCopyBlockTitle(line),
+          lines: [],
+        };
+        return true;
+      }
+
       if (line.startsWith('**Additional Considerations:**')) {
         context.activeServiceType = null;
         context.activeServiceName = null;
@@ -955,6 +1002,20 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
 
       if (!context.current) {
         continue;
+      }
+
+      if (context.copyBlockCapture) {
+        if (line.startsWith('---')) {
+          finalizeCopyBlockCapture();
+          context.currentSection = null;
+          continue;
+        }
+        if (line.startsWith('**')) {
+          finalizeCopyBlockCapture();
+        } else {
+          context.copyBlockCapture.lines.push(lineRaw);
+          continue;
+        }
       }
 
       if (!line) {
