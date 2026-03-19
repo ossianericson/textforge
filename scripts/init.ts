@@ -123,6 +123,14 @@ function resolveScope(
   return fs.existsSync(internalDir) ? 'internal' : 'public';
 }
 
+function buildOutputFileName(scope: TopicScope, topic: string): string {
+  return scope === 'public' ? `${topic}-tree.html` : `${scope}-${topic}-tree.html`;
+}
+
+function getVerifyCommand(scope: TopicScope): string {
+  return scope === 'public' ? 'npm run verify:public-examples' : 'npm run verify:internal-examples';
+}
+
 export async function initTopic(topicOverride?: string): Promise<void> {
   const args = process.argv.slice(2);
   let topicRaw = topicOverride ?? '';
@@ -196,12 +204,26 @@ export async function initTopic(topicOverride?: string): Promise<void> {
 
   fs.writeFileSync(specPath, content, 'utf8');
 
+  const topicRef = `${scope}/${topic}`;
+  const outputFile = buildOutputFileName(scope, topic);
+  const verifyCommand = getVerifyCommand(scope);
+
   console.log(`\nCreated ${specPath} (template: ${template.label})\n`);
   console.log('Next steps:');
   console.log(`  1. Edit ${specPath}`);
   console.log('  2. npm run validate:spec');
-  console.log(`  3. npm run compile:topic -- ${scope}/${topic}`);
-  console.log(`  4. Open output/${scope}-${topic}-tree.html`);
+  console.log(`  3. npm run compile:topic -- ${topicRef}`);
+  console.log(`  4. Open output/${outputFile}`);
+  console.log(`  5. Optional baseline check: ${verifyCommand}`);
+  console.log('');
+  console.log('New tree checklist:');
+  console.log('  - Validate the spec structure and navigation');
+  console.log(`  - Compile the tree directly with npm run compile:topic -- ${topicRef}`);
+  console.log('  - Review the HTML output in a browser');
+  console.log(
+    '  - Run npm test and npm run test:coverage to confirm the shared compiler suite still passes'
+  );
+  console.log(`  - Use ${verifyCommand} to confirm the shipped baseline examples still work`);
 
   try {
     execSync('npm run validate:spec 2>&1', { encoding: 'utf8', timeout: 10_000 });

@@ -24,7 +24,7 @@ textforge/
 │   ├── internal/
 │   └── public/
 ├── quiz/
-│   ├── internal/
+│   ├── internal/ (optional)
 │   └── public/
 ├── docs/
 │   ├── deep-dive.md
@@ -124,6 +124,42 @@ See [decision-tree.rules.md](../decision-tree.rules.md) for the validation check
 3. Generate HTML to output/
 4. Review against [decision-tree.rules.md](../decision-tree.rules.md)
 5. Use `npm run export:public` when preparing a public release
+
+## Test Strategy
+
+The repository uses an 80% coverage gate for lines, functions, branches, and statements through `npm run test:coverage`.
+
+The test layout is intentionally split:
+
+- Shared compiler tests live under `tests/*.test.ts`. They cover compiler behavior and ship in the public export.
+- Curated public baseline verification lives under `tests/public/` and runs via `npm run verify:public-examples`.
+- Internal-only checks live under `tests/internal/`. They validate repository-specific artifacts or curated internal references and do not ship in the public export.
+
+This gives the repo two aligned workflows:
+
+- Internal source repo: `npm test` runs the shared compiler suite plus the internal artifact guardrail.
+- Public export: `npm test` runs the shared compiler suite only, but still keeps the same 80% coverage gate via `npm run test:coverage`.
+
+Baseline example verification is curated:
+
+- `npm run verify:public-examples` runs the curated public baseline examples and their golden snapshot checks.
+- `npm run verify:internal-examples` compiles the curated internal reference examples in the source repository.
+
+The curated references themselves are defined in `tests/baselines.ts`, which keeps the example list in one place instead of scattering hardcoded paths across multiple tests.
+
+That keeps two separate goals clear:
+
+- enforced coverage and compiler regression checks stay stable
+- example-tree verification is available out of the box without making every newly added tree a gating failure
+
+For a brand-new tree, the expected manual verification path is:
+
+```bash
+npm run validate:spec
+npm run compile:topic -- internal/<topic>
+```
+
+Use `public/<topic>` instead of `internal/<topic>` when working on a public example tree.
 
 `npm run export:public` is intentionally structure-first:
 

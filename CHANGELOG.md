@@ -10,6 +10,9 @@ All notable changes to textforge.
 - README source fragments and build script for internal vs public repository views
 - Internal string guard used by the public export pipeline
 - Internal-source repository guard for public export
+- Curated baseline example manifest for public and internal reference trees/quizzes
+- Public baseline verification command with golden snapshot checks for shipped public outputs
+- Internal baseline verification command for curated internal reference examples
 
 ### Changed
 
@@ -19,6 +22,9 @@ All notable changes to textforge.
 - Public compile workflow now builds only the public tree and quiz examples
 - Public export now uses an explicit allowlist copy model and an allowlisted public `package.json` instead of copy-and-prune cleanup
 - README and deep-dive docs now describe the public/internal boundary and export workflow
+- Test architecture now separates enforced shared compiler tests from curated baseline example verification
+- Public export now ships the shared test suite, `npm test`, `npm run test:coverage`, and `npm run verify:public-examples`
+- CLI/init and README guidance now include explicit new-tree verification steps without making new trees automatic gating failures
 
 ## [1.6.0] - 2026-03-03
 
