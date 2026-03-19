@@ -88,9 +88,9 @@ Create a decision tree spec file for the following:
 - "[Option A label]" → go to q2a
 - "[Option B label]" → go to q2b
 - "[Option C label]" → go to q2c
-- "I don't know / Unsure" → go to q1-unsure
+- "I don't know / Unsure" → go to q2a
 
-### Q1-unsure: [Guidance question for unsure users] (id="q1-unsure")
+### Q2a: [Guidance question for unsure users] (id="q2a")
 
 **Title**: "[Help them decide — ask a simpler clarifying question]"
 
@@ -101,8 +101,8 @@ Create a decision tree spec file for the following:
 - "I still don't know" → result: result-contact
 
 [Continue adding questions as needed. Branch IDs use letters: q2a, q2b, q3, etc.
-Every branching question must have an "I don't know" / "Unsure" option.
-Questions that lead directly to a single result do not need an Unsure option.]
+Every branching question should include an "I don't know" / "Unsure" option.
+If you intentionally omit one on a non-dropdown question, expect the validator to warn so you can confirm the choice.]
 
 ---
 

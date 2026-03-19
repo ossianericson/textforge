@@ -65,6 +65,9 @@ npm run build
 
 # 3. Compile the public examples
 npm run compile:public
+
+# 4. Run the public test suite
+npm test
 ```
 
 Open `output/example-multicloud-compute-tree.html` in your browser.
@@ -145,9 +148,9 @@ The repository now follows a permanent content boundary:
 npm run init -- my-topic
 ```
 
-This scaffolds a new spec under `decision-trees/internal/my-topic/spec.md`.
+This scaffolds a new spec under `decision-trees/<scope>/my-topic/spec.md`.
 
-Use `npm run init -- my-topic --scope public` if you intentionally want a public example topic instead. The default scope is `internal` when that folder exists.
+Use `npm run init -- my-topic --scope public` or `npm run init -- my-topic --scope internal` to choose the destination explicitly. The default scope depends on the repo layout.
 
 The smallest valid branching question looks like this:
 
@@ -173,6 +176,31 @@ For a working public example, see `decision-trees/public/example-multicloud-comp
 
 Need more depth? See [docs/deep-dive.md](docs/deep-dive.md).
 
+### New Tree Checklist
+
+Use this flow when creating a brand-new tree:
+
+```bash
+# 1. Scaffold the topic
+npm run init -- my-topic
+
+# 2. Validate the spec
+npm run validate:spec
+
+# 3. Compile just that tree
+npm run compile:topic -- <scope>/my-topic
+
+# 4. Run the stable compiler suite
+npm test
+
+# 5. Check overall coverage
+npm run test:coverage
+```
+
+When you compile with an explicit scoped path, the generated file name is flattened under `output/`, for example `output/public-my-topic-tree.html` or `output/internal-my-topic-tree.html`.
+
+To confirm the shipped baseline examples still work out of the box, run `npm run verify:public-examples`.
+
 ## Using AI to Generate a Spec
 
 Generator prompts live under `docs/generators/` and are intended for design-time use only.
@@ -188,10 +216,10 @@ Typical workflow:
 ```bash
 # 1. Fill in the generator prompt for your domain
 # 2. Use any model to draft spec content
-# 3. Save the result to decision-trees/internal/<topic>/spec.md
+# 3. Save the result to decision-trees/<scope>/<topic>/spec.md
 
 npm run validate:spec
-npm run compile:topic -- internal/<topic>
+npm run compile:topic -- <scope>/<topic>
 ```
 
 ## Quiz Output Mode
@@ -202,41 +230,61 @@ npm run compile:quiz
 
 This writes the public quiz example to `output/example-quiz.html`.
 
+## Test
+
+```bash
+npm test
+```
+
+This runs the shared compiler test suite.
+
+To verify the shipped public example trees out of the box:
+
+```bash
+npm run verify:public-examples
+```
+
+That command checks the curated public baseline examples, including golden snapshot verification for the shipped public outputs, without automatically turning every new tree into a required test case.
+
 ## Production Workflow
 
 ```bash
 # 1. Edit your spec
-decision-trees/internal/<topic>/spec.md
+decision-trees/<scope>/<topic>/spec.md
 
 # 2. Validate
 npm run build && npm run validate:spec
 
 # 3. Compile one tree
-npm run compile:topic -- internal/<topic>
+npm run compile:topic -- <scope>/<topic>
 
 # 4. Review output in browser
-open output/internal-<topic>-tree.html
+open output/<scope>-<topic>-tree.html
 ```
 
 Review against [decision-tree.rules.md](decision-tree.rules.md) before promoting a tree.
 
 ## Command Reference
 
-| Command                            | What it does                                                           |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| `npm run init -- <topic>`          | Create a new spec from template, defaulting to the internal scope      |
-| `npm run compile`                  | Build all decision trees                                               |
-| `npm run compile:public`           | Build only the public tree and quiz examples                           |
-| `npm run compile:watch`            | Auto-rebuild on spec or template changes                               |
-| `npm run compile:topic -- <topic>` | Build one tree by leaf name or nested path such as `internal/my-topic` |
-| `npm run compile:quiz`             | Build the public quiz HTML example                                     |
-| `npm run validate:spec`            | Check for spec errors                                                  |
-| `npm run validate:spec:fix`        | Auto-fix common issues                                                 |
-| `npm run build`                    | TypeScript build                                                       |
-| `npm run typecheck`                | Run the TypeScript compiler without emitting files                     |
-| `npm run lint`                     | Lint the repository                                                    |
-| `npm run lint:fix`                 | Fix lint issues where possible                                         |
-| `npm run format`                   | Format supported source and docs files                                 |
+| Command                            | What it does                                                         |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `npm run init -- <topic>`          | Create a new spec from template, defaulting to the internal scope    |
+| `npm run compile`                  | Build all decision trees                                             |
+| `npm run compile:public`           | Build only the public tree and quiz examples                         |
+| `npm run compile:watch`            | Auto-rebuild on spec or template changes                             |
+| `npm run compile:topic -- <topic>` | Build one tree by leaf name or nested path such as `public/my-topic` |
+| `npm run compile:quiz`             | Build the public quiz HTML example                                   |
+| `npm run validate:spec`            | Check for spec errors                                                |
+| `npm run validate:spec:fix`        | Auto-fix common issues                                               |
+| `npm test`                         | Run the shared compiler test suite                                   |
+| `npm run verify:public-examples`   | Verify the curated public baseline tree and quiz examples            |
+| `npm run test:coverage`            | Run the public-safe test suite with coverage checks                  |
+| `npm run build`                    | TypeScript build                                                     |
+| `npm run typecheck`                | Run the TypeScript compiler without emitting files                   |
+| `npm run typecheck:tests`          | Type-check the test suite                                            |
+| `npm run lint`                     | Lint the repository                                                  |
+| `npm run lint:fix`                 | Fix lint issues where possible                                       |
+| `npm run format`                   | Format supported source and docs files                               |
 
 Run these commands from the cloned repository root.
 
@@ -301,6 +349,13 @@ See [LICENSE](LICENSE).
 ---
 
 ## Public Additions
+
+In the public export, new topics should normally use the `public` scope. For example:
+
+```bash
+npm run init -- my-topic --scope public
+npm run compile:topic -- public/my-topic
+```
 
 ### Contributing
 

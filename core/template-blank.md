@@ -45,7 +45,7 @@
 **Options**:
 
 1. "Option A" → result: result-service-a
-2. "Option B" → result: result-service-b
+2. "Option B" → result: result-guidance
 3. "I don't know / need guidance" → result: result-guidance
 
 ---
@@ -117,6 +117,7 @@ Reach out to the architecture team for personalized recommendations.
 ---
 
 ## Progress Steps
+
 ```javascript
 const progressSteps = {
   q1: 0,
