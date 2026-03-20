@@ -93,7 +93,7 @@ function printHelp(): void {
   Commands:
     init <topic>          Scaffold a new spec from template
     validate [--fix]      Validate all spec.md files
-    compile [--topic X]   Compile one or all trees
+    compile [--topic X]   Compile one tree or all local content outputs
     compile --mode quiz   Compile a quiz spec into HTML
     compile --watch       Watch mode (auto-rebuild)
 

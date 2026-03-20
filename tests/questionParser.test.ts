@@ -112,3 +112,96 @@ test('questionParser: defaults to buttons for unknown type', () => {
   assert.equal(q1.type, 'buttons');
   assert.equal(q1.options.length, 1);
 });
+
+test('questionParser: parses slider blocks with tooltips', () => {
+  const lines = [
+    '## Decision Tree Flow',
+    '',
+    '### Q1: Budget (id="q1")',
+    '**Title**: "Do DPA obligations affect budget?"',
+    '**Type**: slider',
+    '**Tooltips**:',
+    '- "DPA": "Data Processing Agreement"',
+    '**Slider**:',
+    '- Label: "Monthly budget (USD)"',
+    '- Range: 0–500 → go to q2',
+    '- Range: 501–1000 → result: result-standard',
+  ];
+
+  const questions = parseQuestions(lines, 0, lines.length);
+  const q1 = questions.q1;
+  assert.ok(q1);
+  assert.equal(q1.type, 'slider');
+  assert.equal(q1.sliderLabel, 'Monthly budget (USD)');
+  assert.equal(q1.sliderRanges?.length, 2);
+  assert.equal(q1.sliderRanges?.[1]?.next, 'result-standard');
+  assert.equal(q1.tooltips?.[0]?.term, 'DPA');
+});
+
+test('questionParser: parses multi-select routes and fallback', () => {
+  const lines = [
+    '## Decision Tree Flow',
+    '',
+    '### Q1: Requirements (id="q1")',
+    '**Title**: "Pick requirements"',
+    '**Type**: multi-select',
+    '**Options**:',
+    '1. "High availability required"',
+    '2. "Budget constrained"',
+    '**Routes**:',
+    '- "High availability required" → result: result-premium',
+    '- fallback → result: result-guidance',
+  ];
+
+  const questions = parseQuestions(lines, 0, lines.length);
+  const q1 = questions.q1;
+  assert.ok(q1);
+  assert.equal(q1.type, 'multi-select');
+  assert.deepEqual(q1.multiSelectOptions, ['High availability required', 'Budget constrained']);
+  assert.equal(q1.multiSelectRoutes?.[0]?.next, 'result-premium');
+  assert.equal(q1.multiSelectFallback, 'result-guidance');
+});
+
+test('questionParser: parses toggle routes', () => {
+  const lines = [
+    '## Decision Tree Flow',
+    '',
+    '### Q1: Exposure (id="q1")',
+    '**Title**: "Workload exposure"',
+    '**Type**: toggle',
+    '**Label**: "Is this customer-facing?"',
+    '**On** → go to q2',
+    '**Off** → result: result-basic',
+  ];
+
+  const questions = parseQuestions(lines, 0, lines.length);
+  const q1 = questions.q1;
+  assert.ok(q1);
+  assert.equal(q1.type, 'toggle');
+  assert.equal(q1.toggleLabel, 'Is this customer-facing?');
+  assert.equal(q1.toggleOnNext, 'q2');
+  assert.equal(q1.toggleOffNext, 'result-basic');
+});
+
+test('questionParser: parses scoring-matrix routes', () => {
+  const lines = [
+    '## Decision Tree Flow',
+    '',
+    '### Q1: Score (id="q1")',
+    '**Title**: "Score priorities"',
+    '**Type**: scoring-matrix',
+    '**Categories**: Security, Cost, Performance, Scalability',
+    '**Scale**: 1–5',
+    '**Routes**:',
+    '- Range: 4–8 → result: result-basic',
+    '- Range: 9–14 → result: result-standard',
+  ];
+
+  const questions = parseQuestions(lines, 0, lines.length);
+  const q1 = questions.q1;
+  assert.ok(q1);
+  assert.equal(q1.type, 'scoring-matrix');
+  assert.deepEqual(q1.scoringMatrixCategories, ['Security', 'Cost', 'Performance', 'Scalability']);
+  assert.deepEqual(q1.scoringMatrixScale, { min: 1, max: 5 });
+  assert.equal(q1.scoringMatrixRoutes?.[1]?.next, 'result-standard');
+});

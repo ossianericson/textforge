@@ -1,6 +1,6 @@
 import { createQuestionParser } from '#parsers/question-parser';
 import { createResultParser } from '#parsers/result-parser';
-import { parseTitle } from '#parsers/title-parser';
+import { parseSpecMetadata, parseTitle } from '#parsers/title-parser';
 import { findSectionIndices, parseProgressSteps } from '#parsers/progress-parser';
 import {
   cleanInlineText,
@@ -20,6 +20,7 @@ import type {
   ParseProgressSteps,
   ParseQuestions,
   ParseResults,
+  ParseSpecMetadata,
   ParseTitle,
   QuestionParserDependencies,
   ResultParserDependencies,
@@ -27,6 +28,7 @@ import type {
 
 interface ParserBundle {
   parseTitle: ParseTitle;
+  parseSpecMetadata: ParseSpecMetadata;
   findSectionIndices: FindSectionIndices;
   parseProgressSteps: ParseProgressSteps;
   parseQuestions: ParseQuestions;
@@ -50,6 +52,7 @@ function createParsers(
 
   return {
     parseTitle,
+    parseSpecMetadata,
     findSectionIndices,
     parseProgressSteps,
     parseQuestions: createQuestionParser({

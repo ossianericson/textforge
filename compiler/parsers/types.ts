@@ -6,14 +6,19 @@ import type {
   FindSectionIndices,
   LinkInfo,
   LinkParseResult,
+  MatrixScale,
   MatrixTable,
+  MultiSelectRoute,
   ParseProgressSteps,
   ParseQuestions,
   ParseResults,
+  ParseSpecMetadata,
   ParseTitle,
+  ParsedMetadata,
   ParsedSpec,
   ProgressSteps,
   Question,
+  TooltipDefinition,
   QuestionMap,
   QuestionOption,
   ResultCard,
@@ -32,14 +37,19 @@ export type {
   FindSectionIndices,
   LinkInfo,
   LinkParseResult,
+  MatrixScale,
   MatrixTable,
+  MultiSelectRoute,
   ParseProgressSteps,
   ParseQuestions,
   ParseResults,
+  ParseSpecMetadata,
   ParseTitle,
+  ParsedMetadata,
   ParsedSpec,
   ProgressSteps,
   Question,
+  TooltipDefinition,
   QuestionMap,
   QuestionOption,
   ResultCard,
@@ -55,6 +65,28 @@ export interface QuestionParserDependencies {
   normalizeText: (text: string) => string;
   stripQuotes: (text: string) => string;
   renderInlineMarkdown: (text: string) => string;
+}
+
+export interface QuestionParserHelpers extends QuestionParserDependencies {
+  parseNavigationTarget: (action: string, target: string) => string | null;
+}
+
+export interface QuestionBlockParseResult {
+  endIndex: number;
+  patch: Partial<Question>;
+}
+
+export interface QuestionBlockContext {
+  lines: string[];
+  startIndex: number;
+  questionId: string;
+  question: Question;
+  helpers: QuestionParserHelpers;
+}
+
+export interface QuestionBlockHandler {
+  matches: (line: string, question: Question) => boolean;
+  parse: (context: QuestionBlockContext) => QuestionBlockParseResult;
 }
 
 export interface ResultParserDependencies {

@@ -42,13 +42,6 @@ An interactive output with:
 - Keyboard navigation and ARIA accessibility
 - Zero server dependencies
 
-## Install
-
-```bash
-npm install
-npm run build
-```
-
 ## Prerequisites
 
 - Node.js 22 or later
@@ -68,9 +61,12 @@ npm run compile:public
 
 # 4. Run the public test suite
 npm test
+
+# Optional: run the full verification path including coverage
+npm run test:full
 ```
 
-Open `output/example-multicloud-compute-tree.html` in your browser.
+After compile, open `output/example-multicloud-compute-tree.html` in your browser.
 
 ## Compile
 
@@ -78,7 +74,9 @@ Open `output/example-multicloud-compute-tree.html` in your browser.
 npm run compile
 ```
 
-This compiles every decision tree under `decision-trees/**/spec.md`.
+This compiles every local decision tree under `decision-trees/**/spec.md` and every quiz under `quiz/**/spec.md`.
+
+Outputs from scoped paths are flattened under `output/`, for example `output/internal-azure-compute-tree.html` and `output/public-example-quiz.html`.
 
 To compile the public examples only:
 
@@ -86,7 +84,7 @@ To compile the public examples only:
 npm run compile:public
 ```
 
-That command builds:
+That command builds the curated public release artifacts with the shipped output names:
 
 - `decision-trees/public/example-multicloud-compute/spec.md`
 - `quiz/public/example/spec.md`
@@ -125,11 +123,6 @@ Decision trees live under `decision-trees/`.
 Quiz examples live under `quiz/`.
 New internal trees should be created under `decision-trees/internal/` unless they are intentionally promoted to `decision-trees/public/`.
 Quiz examples follow the same boundary: internal quiz content belongs under `quiz/internal/`, while public examples belong under `quiz/public/`.
-
-## Public Examples
-
-- `decision-trees/public/example-multicloud-compute/` — example multi-cloud compute decision tree
-- `quiz/public/example/` — example quiz output
 
 ## Pattern
 
@@ -190,10 +183,15 @@ npm run validate:spec
 # 3. Compile just that tree
 npm run compile:topic -- <scope>/my-topic
 
-# 4. Run the stable compiler suite
+# 4. Open output/<scope>-my-topic-tree.html in your browser
+
+# 5. Run the stable compiler suite
 npm test
 
-# 5. Check overall coverage
+# Optional: run the corpus-only smoke verification directly
+npm run verify:corpus
+
+# 6. Check overall coverage
 npm run test:coverage
 ```
 
@@ -222,13 +220,13 @@ npm run validate:spec
 npm run compile:topic -- <scope>/<topic>
 ```
 
-## Quiz Output Mode
+## Direct Quiz Compile
 
 ```bash
-npm run compile:quiz
+dtb compile --mode quiz --spec quiz/public/example/spec.md --output output/example-quiz.html
 ```
 
-This writes the public quiz example to `output/example-quiz.html`.
+Use this only when you want to compile one quiz spec directly instead of using the repository-level `npm run compile` or `npm run compile:public` commands.
 
 ## Test
 
@@ -236,7 +234,13 @@ This writes the public quiz example to `output/example-quiz.html`.
 npm test
 ```
 
-This runs the shared compiler test suite.
+This runs the shared compiler test suite, the internal output guardrail, and the corpus-level smoke checks for every discovered spec under `decision-trees/**/spec.md` and `quiz/**/spec.md`.
+
+To run only the corpus-level compile verification:
+
+```bash
+npm run verify:corpus
+```
 
 To verify the shipped public example trees out of the box:
 
@@ -244,39 +248,36 @@ To verify the shipped public example trees out of the box:
 npm run verify:public-examples
 ```
 
-That command checks the curated public baseline examples, including golden snapshot verification for the shipped public outputs, without automatically turning every new tree into a required test case.
+That command checks the curated public baseline examples, including golden snapshot verification for the shipped public outputs.
 
-## Production Workflow
+Coverage output is intentionally kept separate from `npm test`:
 
 ```bash
-# 1. Edit your spec
-decision-trees/<scope>/<topic>/spec.md
-
-# 2. Validate
-npm run build && npm run validate:spec
-
-# 3. Compile one tree
-npm run compile:topic -- <scope>/<topic>
-
-# 4. Review output in browser
-open output/<scope>-<topic>-tree.html
+npm run test:coverage
 ```
 
-Review against [decision-tree.rules.md](decision-tree.rules.md) before promoting a tree.
+That command reruns the suite under `c8`, prints the coverage summary, and enforces the 80% gate. Keeping coverage out of the default `npm test` path keeps local iteration faster and the default output easier to scan when you are working on a new tree.
+
+If you want one command that runs the normal suite and then prints the coverage summary, use:
+
+```bash
+npm run test:full
+```
 
 ## Command Reference
 
 | Command                            | What it does                                                         |
 | ---------------------------------- | -------------------------------------------------------------------- |
 | `npm run init -- <topic>`          | Create a new spec from template, defaulting to the internal scope    |
-| `npm run compile`                  | Build all decision trees                                             |
+| `npm run compile`                  | Build all decision trees and quizzes in the local repository         |
 | `npm run compile:public`           | Build only the public tree and quiz examples                         |
-| `npm run compile:watch`            | Auto-rebuild on spec or template changes                             |
+| `npm run compile:watch`            | Auto-rebuild decision trees and quizzes on spec or template changes  |
 | `npm run compile:topic -- <topic>` | Build one tree by leaf name or nested path such as `public/my-topic` |
-| `npm run compile:quiz`             | Build the public quiz HTML example                                   |
 | `npm run validate:spec`            | Check for spec errors                                                |
 | `npm run validate:spec:fix`        | Auto-fix common issues                                               |
-| `npm test`                         | Run the shared compiler test suite                                   |
+| `npm test`                         | Run shared tests plus corpus smoke checks for all discovered specs   |
+| `npm run test:full`                | Run `npm test` and then print/enforce coverage                       |
+| `npm run verify:corpus`            | Compile every discovered tree and quiz spec with shared invariants   |
 | `npm run verify:public-examples`   | Verify the curated public baseline tree and quiz examples            |
 | `npm run test:coverage`            | Run the public-safe test suite with coverage checks                  |
 | `npm run build`                    | TypeScript build                                                     |

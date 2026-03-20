@@ -1,27 +1,64 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { compileDecisionTree } from './index.js';
-import { buildTopicOutputName, listTopics, parseArgs, resolveTopic } from './cli-utils.js';
+import { compileQuiz } from './quiz-compiler.js';
+import {
+  buildQuizOutputName,
+  buildTopicOutputName,
+  listSpecDirectories,
+  listTopics,
+  parseArgs,
+  resolveTopic,
+} from './cli-utils.js';
 import { getConfig } from '#config';
 import { createLogger } from '#logger';
 
 const logger = createLogger({ component: 'compile-all' });
 
+function getQuizRootDir(rootDir: string): string {
+  return path.join(rootDir, 'quiz');
+}
+
+function getQuizTemplatePath(rootDir: string): string {
+  return path.join(rootDir, 'core', 'quiz-template.html');
+}
+
+function compileQuizTopic(topic: string): void {
+  const config = getConfig();
+  const quizRootDir = getQuizRootDir(config.rootDir);
+
+  compileQuiz({
+    specPath: path.join(quizRootDir, ...topic.split('/'), 'spec.md'),
+    templatePath: getQuizTemplatePath(config.rootDir),
+    outputPath: path.join(config.outputDir, buildQuizOutputName(topic)),
+  });
+}
+
 export function compileAll(templateOverride?: string): void {
   const config = getConfig();
   const decisionTreesDir = config.decisionTreesDir;
+  const quizRootDir = getQuizRootDir(config.rootDir);
   const templatePath = templateOverride
     ? path.resolve(templateOverride)
     : (config.templatePathOverride ?? undefined);
 
-  const topics = listTopics(decisionTreesDir);
-  if (!topics.length) {
-    logger.error('No decision tree topics found under decision-trees/.', { decisionTreesDir });
+  const treeTopics = listTopics(decisionTreesDir);
+  const quizTopics = listSpecDirectories(quizRootDir);
+
+  if (!treeTopics.length && !quizTopics.length) {
+    logger.error('No content topics found under decision-trees/ or quiz/.', {
+      decisionTreesDir,
+      quizRootDir,
+    });
     process.exit(1);
   }
 
-  topics.forEach((topic) => {
+  treeTopics.forEach((topic) => {
     compileSingle(topic, templatePath);
+  });
+
+  quizTopics.forEach((topic) => {
+    compileQuizTopic(topic);
   });
 }
 

@@ -147,6 +147,97 @@ Use `**Type**: dropdown-pair` to render two dropdowns on the same question, then
 - Optional image: `**Matrix Image**: "docs/your-image.png"` and `**Matrix Image Alt**: "Alt text"`
 - Optional matrix table: `**Matrix Table**` with Columns and Row entries
 
+### Slider Questions
+
+Use `**Type**: slider` for a numeric range input rendered as a slider.
+
+**Format:**
+
+```markdown
+**Type**: slider
+**Slider**:
+
+- Label: "Monthly budget (USD)"
+- Range: 0–500 → go to q2a
+- Range: 501–2000 → go to q2b
+- Range: 2001–10000 → result: result-premium
+```
+
+**Constraints:**
+
+- Integer values only
+- Same numeric validation rules as dropdown ranges
+- Use standard `go to` or `result:` targets
+
+### Multi-select Questions
+
+Use `**Type**: multi-select` when the user can choose more than one option before routing.
+
+**Format:**
+
+```markdown
+**Type**: multi-select
+**Options**:
+
+1. "High availability required"
+2. "Budget constrained"
+3. "Regulated data"
+
+**Routes**:
+
+- "High availability required" + "Regulated data" → result: result-premium
+- "Budget constrained" → result: result-standard
+- fallback → result: result-guidance
+```
+
+**Constraints:**
+
+- Route matching is exact-set and order-insensitive
+- `fallback` is required
+- Option labels must be unique within the question
+
+### Toggle Questions
+
+Use `**Type**: toggle` for a binary yes/no style branch.
+
+**Format:**
+
+```markdown
+**Type**: toggle
+**Label**: "Is this customer-facing?"
+**On** → go to q2a
+**Off** → go to q2b
+```
+
+**Constraints:**
+
+- Both `On` and `Off` routes are required
+- Use standard navigation syntax for both branches
+
+### Scoring Matrix Questions
+
+Use `**Type**: scoring-matrix` when users score several categories and routing depends on the total.
+
+**Format:**
+
+```markdown
+**Type**: scoring-matrix
+**Categories**: Security, Cost, Performance, Scalability
+**Scale**: 1–5
+**Routes**:
+
+- Range: 4–8 → result: result-basic
+- Range: 9–14 → result: result-standard
+- Range: 15–20 → result: result-premium
+```
+
+**Constraints:**
+
+- Categories must be unique
+- Scale must be an integer min/max range
+- Route ranges must fit the theoretical total score bounds
+- Same numeric validation rules as dropdown ranges
+
 **Matrix Table Format:**
 
 ```markdown
@@ -183,6 +274,23 @@ Result cards can include an optional `**Search Tags:**` field to improve search 
 ```
 
 **Placement:** After the badge line, before **Best For**.
+
+### Tooltips (Optional)
+
+Use `**Tooltips**` inside a question to define inline technical term help.
+
+**Format:**
+
+```markdown
+**Tooltips**:
+
+- "DPA": "Data Processing Agreement"
+- "DPIA": "Data Protection Impact Assessment"
+```
+
+### Expert Detail (Optional)
+
+Use `**Expert Detail:**` inside a result card to add content that renderer v2 can hide behind an expert-view toggle.
 
 ---
 

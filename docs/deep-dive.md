@@ -7,6 +7,18 @@ Related references:
 - [decision-tree.rules.md](../decision-tree.rules.md)
 - [core/style-guide.md](../core/style-guide.md)
 
+## Origin and Philosophy
+
+textforge started as a small experiment: use AI to design a better interactive learning tool, then keep the useful result and remove AI from runtime entirely.
+
+The project principle is simple:
+
+> _If you can't reproduce it, you don't own it._
+
+AI can help during design and development, but the delivered artifact should stay deterministic, inspectable, and reproducible.
+
+For the architectural philosophy behind that approach, see [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b).
+
 ## Deterministic Workflow
 
 Use [README.md](../README.md) for the supported commands and [decision-tree.rules.md](../decision-tree.rules.md) for authoring rules.
@@ -32,10 +44,19 @@ textforge/
 │   └── readme/
 ├── compiler/
 ├── core/
+├── dist/
+│   └── public-export/
+├── output/
 ├── renderers/
 ├── scripts/
 └── tools/
 ```
+
+Notes:
+
+- `README.md` in the internal source repo is generated from `docs/readme/shared.md` plus `docs/readme/internal.md`.
+- The public export writes its own generated `README.md` from `docs/readme/shared.md` plus `docs/readme/public.md`.
+- `dist/public-export/` is a generated release snapshot, not an authoring location.
 
 ## Compiler Flow
 
@@ -119,11 +140,13 @@ See [decision-tree.rules.md](../decision-tree.rules.md) for the validation check
 
 ## Production Workflow
 
-1. Edit or add a spec under `decision-trees/internal/` or `decision-trees/public/`
-2. Run `npm run build && npm run validate:spec`
-3. Generate HTML to output/
-4. Review against [decision-tree.rules.md](../decision-tree.rules.md)
-5. Use `npm run export:public` when preparing a public release
+1. Scaffold or edit a spec under `decision-trees/internal/` or `decision-trees/public/`
+2. Run `npm run validate:spec`
+3. Compile one topic with `npm run compile:topic -- <scope>/<topic>` or rebuild everything with `npm run compile`
+4. Review the generated HTML under `output/` against [decision-tree.rules.md](../decision-tree.rules.md)
+5. Run `npm test`
+6. Run `npm run verify:public-examples` if you changed shipped public examples
+7. Use `npm run export:public` when preparing a public release
 
 ## Test Strategy
 
@@ -167,7 +190,8 @@ Use `public/<topic>` instead of `internal/<topic>` when working on a public exam
 2. It copies only an explicit public allowlist into `dist/public-export/`.
 3. It writes the public `README.md` directly into the export snapshot.
 4. It writes a reduced public `package.json` from an allowlist of scripts.
-5. It scans the staged export for blocked internal strings and compiles the public examples.
+5. It scans the staged export for blocked internal strings.
+6. It validates the generated export by running `npm install`, `npm run build`, `npm run compile`, `npm test`, `npm run verify:public-examples`, and `npm run validate:spec` inside `dist/public-export/`.
 
 ## Troubleshooting
 
@@ -184,8 +208,7 @@ Common issues:
 `arch -arm64 npm install`. Verify with `node -e "console.log(process.arch)"` - expect `arm64`.
 
 **Windows WSL2:** Set `git config core.autocrlf false` before cloning. If Husky hooks
-fail with "permission denied", run `chmod +x .husky/*` inside WSL2. Use the WSL2 terminal
-for all `npm run` commands; PowerShell is not supported.
+fail with "permission denied", run `chmod +x .husky/*` inside WSL2. Prefer WSL2 if you want a Linux-like shell environment for hooks and line-ending behavior, but standard `npm run` commands also work from PowerShell in the current repo.
 
 ## Error Codes
 

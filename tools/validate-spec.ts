@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { parseSpecFile } from '../compiler/parsers/index.js';
+import type { ParsedSpec, Question } from '../compiler/types.js';
 import { getConfig, type Config } from '#config';
 import { createLogger } from '#logger';
 
@@ -96,6 +98,14 @@ const TIER_MATRIX_PATTERN: RegExp = new RegExp(
 );
 const MAX_PATH_STEPS = 8;
 const MAX_OPTIONS_PER_QUESTION = 6;
+const UNSURE_EXEMPT_QUESTION_TYPES = new Set([
+  'dropdown',
+  'dropdown-pair',
+  'slider',
+  'multi-select',
+  'toggle',
+  'scoring-matrix',
+]);
 
 export function runValidation(options: { fix: boolean }): void {
   const hasFix = options.fix;
@@ -137,6 +147,14 @@ export function runValidation(options: { fix: boolean }): void {
     }
 
     const lines = content.split(/\r?\n/);
+    let parsedSpec: ParsedSpec | null = null;
+
+    try {
+      parsedSpec = parseSpecFile(specFile);
+    } catch {
+      parsedSpec = null;
+    }
+
     let inMermaid = false;
     let inOptions = false;
     let inDropdown = false;
@@ -671,9 +689,16 @@ export function runValidation(options: { fix: boolean }): void {
       }
     });
 
+    const graphForAnalysis = parsedSpec ? buildGraphFromParsedSpec(parsedSpec) : graph;
+    const questionTypes = parsedSpec ? buildQuestionTypeMap(parsedSpec) : new Map<string, string>();
+
     questionOrder.forEach((questionId) => {
-      const isDropdown = dropdownQuestions.has(questionId) || dropdownPairQuestions.has(questionId);
-      if (!isDropdown && !questionHasUnsure.get(questionId)) {
+      const questionType = questionTypes.get(questionId) || null;
+      const isUnsureExempt = questionType
+        ? UNSURE_EXEMPT_QUESTION_TYPES.has(questionType)
+        : dropdownQuestions.has(questionId) || dropdownPairQuestions.has(questionId);
+
+      if (!isUnsureExempt && !questionHasUnsure.get(questionId)) {
         addWarning(
           context,
           specFile,
@@ -830,7 +855,7 @@ export function runValidation(options: { fix: boolean }): void {
       }
     }
 
-    const cycles = detectCycles(graph, questionOrder);
+    const cycles = detectCycles(graphForAnalysis, questionOrder);
     for (const { cycle, entryPoint } of cycles) {
       addIssue(
         context,
@@ -840,7 +865,7 @@ export function runValidation(options: { fix: boolean }): void {
       );
     }
 
-    const unreachable = findUnreachableQuestions(graph, questionOrder);
+    const unreachable = findUnreachableQuestions(graphForAnalysis, questionOrder);
     for (const questionId of unreachable) {
       addWarning(
         context,
@@ -852,7 +877,7 @@ export function runValidation(options: { fix: boolean }): void {
 
     const referencedResults = new Set<string>();
     const tierValues = ['critical', 'high', 'medium', 'low'];
-    for (const targets of graph.values()) {
+    for (const targets of graphForAnalysis.values()) {
       for (const target of targets) {
         if (target.result) {
           const normalized = target.result.toLowerCase();
@@ -881,7 +906,7 @@ export function runValidation(options: { fix: boolean }): void {
     const definedQuestions = new Set(questionOrder);
     const definedResults = new Set(resultBlocks.map((block) => block.id));
 
-    for (const [sourceId, targets] of graph.entries()) {
+    for (const [sourceId, targets] of graphForAnalysis.entries()) {
       for (const target of targets) {
         if (target.question && !definedQuestions.has(target.question)) {
           addIssue(
@@ -910,7 +935,7 @@ export function runValidation(options: { fix: boolean }): void {
     }
     const startQuestion = questionOrder.includes('q1') ? 'q1' : questionOrder[0];
     if (startQuestion) {
-      const maxDepth = getMaxQuestionDepth(startQuestion, graph, new Set());
+      const maxDepth = getMaxQuestionDepth(startQuestion, graphForAnalysis, new Set());
       if (maxDepth > MAX_PATH_STEPS) {
         addWarning(
           context,
@@ -1107,6 +1132,57 @@ function addWarning(
   issueContext: IssueContext = {}
 ): void {
   context.warnings.push({ file, line: lineNumber, message, ...issueContext });
+}
+
+function buildQuestionTypeMap(parsedSpec: ParsedSpec): Map<string, string> {
+  return new Map(
+    Object.entries(parsedSpec.questions).map(([questionId, question]) => [
+      questionId.toLowerCase(),
+      question.type || 'buttons',
+    ])
+  );
+}
+
+function buildGraphFromParsedSpec(parsedSpec: ParsedSpec): Map<string, GraphTarget[]> {
+  return new Map(
+    Object.entries(parsedSpec.questions).map(([questionId, question]) => [
+      questionId.toLowerCase(),
+      collectTargetsFromQuestion(question),
+    ])
+  );
+}
+
+function collectTargetsFromQuestion(question: Question): GraphTarget[] {
+  const rawTargets = [
+    ...(question.options || []).map((option) => option.next),
+    ...(question.dropdownRanges || []).map((range) => range.next),
+    ...(question.sliderRanges || []).map((range) => range.next),
+    ...(question.scoringMatrixRoutes || []).map((range) => range.next),
+    ...(question.multiSelectRoutes || []).map((route) => route.next),
+    ...(question.multiSelectFallback ? [question.multiSelectFallback] : []),
+    ...(question.toggleOnNext ? [question.toggleOnNext] : []),
+    ...(question.toggleOffNext ? [question.toggleOffNext] : []),
+    ...Object.values(question.dropdownMatrix || {}).flatMap((row) => Object.values(row || {})),
+  ];
+
+  return rawTargets
+    .map((target) => normalizeGraphTarget(target))
+    .filter((target): target is GraphTarget => target !== null);
+}
+
+function normalizeGraphTarget(target: string | null | undefined): GraphTarget | null {
+  const normalized = String(target || '')
+    .trim()
+    .toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.startsWith('result-')) {
+    return { question: null, result: normalized };
+  }
+
+  return { question: normalized, result: null };
 }
 
 function getLineNumber(content: string, index: number): number {

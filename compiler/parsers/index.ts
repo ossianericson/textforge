@@ -4,8 +4,14 @@ import { createParsers } from './factory.js';
 import { DecisionTreeCompilerError, ERROR_CODES } from '../errors.js';
 import type { ParsedSpec } from '../types.js';
 
-const { parseTitle, parseQuestions, parseResults, findSectionIndices, parseProgressSteps } =
-  createParsers();
+const {
+  parseTitle,
+  parseSpecMetadata,
+  parseQuestions,
+  parseResults,
+  findSectionIndices,
+  parseProgressSteps,
+} = createParsers();
 
 function parseSpecFile(filePath: string): ParsedSpec {
   if (!fs.existsSync(filePath)) {
@@ -28,12 +34,17 @@ function parseSpec(contents: string): ParsedSpec {
   const lines = contents.split(/\r?\n/);
   const sections = findSectionIndices(lines);
   const title = parseTitle(lines, sections.flowStart ?? sections.resultStart ?? lines.length);
+  const metadata = parseSpecMetadata(
+    lines,
+    sections.flowStart ?? sections.resultStart ?? lines.length
+  );
   const questions = parseQuestions(lines, sections.flowStart, sections.resultStart);
   const results = parseResults(lines, sections.resultStart, sections.progressStart);
   const progressSteps = parseProgressSteps(lines, sections.progressStart);
 
   return {
     title,
+    metadata,
     questions,
     results,
     progressSteps,

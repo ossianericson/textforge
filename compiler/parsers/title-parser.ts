@@ -1,5 +1,5 @@
 import { stripQuotes } from '#parser-utils/text-normalizer';
-import type { ParseTitle } from './types.js';
+import type { ParseSpecMetadata, ParseTitle } from './types.js';
 
 const parseTitle: ParseTitle = (lines, limitIndex = lines.length) => {
   let main = '';
@@ -30,4 +30,24 @@ const parseTitle: ParseTitle = (lines, limitIndex = lines.length) => {
   return { main, subtitle };
 };
 
-export { parseTitle };
+const parseSpecMetadata: ParseSpecMetadata = (lines, limitIndex = lines.length) => {
+  let version = '';
+
+  for (let i = 0; i < Math.min(lines.length, limitIndex); i += 1) {
+    const line = lines[i];
+    if (!line) {
+      continue;
+    }
+    if (line.trim().startsWith('**Version:**')) {
+      const parts = line.split('**Version:**');
+      if (parts[1]) {
+        version = stripQuotes(parts[1].trim());
+      }
+      break;
+    }
+  }
+
+  return version ? { version } : {};
+};
+
+export { parseSpecMetadata, parseTitle };

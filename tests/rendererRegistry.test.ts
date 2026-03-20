@@ -66,6 +66,12 @@ test('renderer registry: copy-first shares the default-v1 template shell', () =>
   assert.ok(templatePath.endsWith(path.join('renderers', 'html', 'default-v1', 'template.html')));
 });
 
+test('renderer registry: resolves default-v2 template paths', () => {
+  const templatePath = resolveRendererTemplatePath('html/default-v2', ROOT_DIR);
+
+  assert.ok(templatePath.endsWith(path.join('renderers', 'html', 'default-v2', 'template.html')));
+});
+
 test('renderer registry: rejects invalid render option types', () => {
   const tempDir = makeTempDir();
   const specDir = path.join(tempDir, 'topic-c');
