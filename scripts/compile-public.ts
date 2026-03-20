@@ -26,13 +26,18 @@ function main(): void {
     outputPath: path.join(config.outputDir, 'example-multicloud-compute-tree.html'),
   });
 
+  compileDecisionTree({
+    specPath: path.join(rootDir, 'decision-trees', 'public', 'example-advanced-inputs', 'spec.md'),
+    outputPath: path.join(config.outputDir, 'example-advanced-inputs-tree.html'),
+  });
+
   compileQuiz({
     specPath: path.join(rootDir, 'quiz', 'public', 'example', 'spec.md'),
     templatePath: path.join(rootDir, 'core', 'quiz-template.html'),
     outputPath: path.join(config.outputDir, 'example-quiz.html'),
   });
 
-  process.stdout.write('Compiled public decision tree and quiz examples.\n');
+  process.stdout.write('Compiled public decision tree examples and quiz example.\n');
 }
 
 main();

@@ -66,3 +66,25 @@ test('Decision Tree Compiler: render options can hide shared result sections', (
   assert.ok(html.includes('"showCopyLinkButton": false'));
   assert.ok(html.includes('"showContactSection": false'));
 });
+
+test('Decision Tree Compiler: default-v2 renderer exposes advanced feature flags', () => {
+  const tempDir = makeTempDir();
+  const topicDir = path.join(tempDir, 'advanced-topic');
+  fs.mkdirSync(topicDir, { recursive: true });
+  const specPath = writeFile(topicDir, 'spec.md', readFixture('spec-valid.md'));
+  writeFile(topicDir, 'render.json', JSON.stringify({ renderer: 'html/default-v2' }));
+  const outputPath = path.join(tempDir, 'output.html');
+
+  compileDecisionTree({
+    specPath,
+    outputPath,
+  });
+
+  const html = readFile(outputPath);
+  assert.ok(html.includes('"enableInlineTooltips": true'));
+  assert.ok(html.includes('"enableExpertToggle": true'));
+  assert.ok(html.includes('"enableVersionWatermark": true'));
+  assert.ok(html.includes('"enableFeedback": true'));
+  assert.ok(html.includes('"enableMobileCardUi": true'));
+  assert.ok(html.includes('const metadata = {'));
+});

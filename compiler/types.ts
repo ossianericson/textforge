@@ -14,6 +14,21 @@ export interface DropdownRange {
   label: string;
 }
 
+export interface TooltipDefinition {
+  term: string;
+  definition: string;
+}
+
+export interface MultiSelectRoute {
+  values: string[];
+  next: string;
+}
+
+export interface MatrixScale {
+  min: number;
+  max: number;
+}
+
 export interface DropdownBucketRange {
   min: number;
   max: number;
@@ -40,9 +55,17 @@ export interface Question {
   title: string;
   subtitle: string;
   infoBox: string | null;
-  type?: 'buttons' | 'dropdown' | 'dropdown-pair';
+  type?:
+    | 'buttons'
+    | 'dropdown'
+    | 'dropdown-pair'
+    | 'slider'
+    | 'multi-select'
+    | 'toggle'
+    | 'scoring-matrix';
   options: Option[];
   contextCapture?: ContextCapture;
+  tooltips?: TooltipDefinition[];
   dropdownLabel?: string;
   dropdownRanges?: DropdownRange[];
   dropdownLeftLabel?: string;
@@ -54,6 +77,17 @@ export interface Question {
   dropdownPairImage?: string;
   dropdownPairImageAlt?: string;
   dropdownMatrixTable?: MatrixTable;
+  sliderLabel?: string;
+  sliderRanges?: DropdownRange[];
+  multiSelectOptions?: string[];
+  multiSelectRoutes?: MultiSelectRoute[];
+  multiSelectFallback?: string;
+  toggleLabel?: string;
+  toggleOnNext?: string;
+  toggleOffNext?: string;
+  scoringMatrixCategories?: string[];
+  scoringMatrixScale?: MatrixScale;
+  scoringMatrixRoutes?: DropdownRange[];
 }
 
 export interface TitleData {
@@ -136,6 +170,7 @@ export interface Result {
   responsibilityLinks?: DocLink[];
   supportSection?: SupportSection;
   copyBlocks?: CopyBlock[];
+  expertDetail?: string;
 }
 
 export type ResultCard = Result;
@@ -152,9 +187,15 @@ export interface SectionIndices {
 
 export interface ParsedSpec {
   title: TitleData;
+  metadata?: ParsedMetadata;
   questions: QuestionMap;
   results: ResultMap;
   progressSteps: ProgressSteps;
+}
+
+export interface ParsedMetadata {
+  version?: string;
+  compiledAt?: string;
 }
 
 export interface StudyCard {
@@ -189,4 +230,5 @@ export type ParseQuestions = (lines: string[], startIndex: number, endIndex: num
 export type ParseResults = (lines: string[], startIndex: number, endIndex: number) => ResultMap;
 export type ParseProgressSteps = (lines: string[], startIndex?: number) => ProgressSteps;
 export type ParseTitle = (lines: string[], limitIndex?: number) => TitleData;
+export type ParseSpecMetadata = (lines: string[], limitIndex?: number) => ParsedMetadata;
 export type FindSectionIndices = (lines: string[]) => SectionIndices;

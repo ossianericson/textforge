@@ -28,6 +28,20 @@ interface CompileOptions {
   promptPath?: string;
 }
 
+function resolveCompileDate(): string {
+  const explicitDate = process.env.DTB_COMPILE_DATE?.trim();
+  if (explicitDate) {
+    return explicitDate;
+  }
+
+  const sourceDateEpoch = process.env.SOURCE_DATE_EPOCH?.trim();
+  if (sourceDateEpoch && /^\d+$/.test(sourceDateEpoch)) {
+    return new Date(Number(sourceDateEpoch) * 1000).toISOString().slice(0, 10);
+  }
+
+  return new Date().toISOString().slice(0, 10);
+}
+
 function normalizeId(id: unknown): string {
   return (id ?? '').toString().toLowerCase().trim();
 }
@@ -47,17 +61,40 @@ function validateSpec(parsed: ParsedSpec): string[] {
     return tierValues.map((tier) => target.replace('{tier}', tier));
   };
 
+  const collectQuestionTargets = (question: ParsedSpec['questions'][string]): string[] => {
+    const targets = (question.options || []).map((option) => option.next);
+    (question.dropdownRanges || []).forEach((range) => targets.push(range.next));
+    (question.sliderRanges || []).forEach((range) => targets.push(range.next));
+    (question.scoringMatrixRoutes || []).forEach((range) => targets.push(range.next));
+    (question.multiSelectRoutes || []).forEach((route) => targets.push(route.next));
+    if (question.multiSelectFallback) {
+      targets.push(question.multiSelectFallback);
+    }
+    if (question.toggleOnNext) {
+      targets.push(question.toggleOnNext);
+    }
+    if (question.toggleOffNext) {
+      targets.push(question.toggleOffNext);
+    }
+
+    Object.values(question.dropdownMatrix || {}).forEach((row) => {
+      Object.values(row || {}).forEach((target) => {
+        targets.push(target);
+      });
+    });
+
+    return targets;
+  };
+
   Object.entries(questions).forEach(([questionId, question]) => {
-    (question.options || []).forEach((option) => {
-      const target = normalizeId(option.next);
+    collectQuestionTargets(question).forEach((rawTarget) => {
+      const target = normalizeId(rawTarget);
       const candidates = resolveDynamicTargets(target).map(normalizeId);
       const exists = candidates.some(
         (candidate) => questionIds.has(candidate) || resultIds.has(candidate)
       );
       if (!exists) {
-        warnings.push(
-          `Missing target id "${option.next}" referenced from question "${questionId}".`
-        );
+        warnings.push(`Missing target id "${rawTarget}" referenced from question "${questionId}".`);
       }
     });
   });
@@ -289,6 +326,10 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
   }
 
   parsed = sanitizeParsedSpec(parsed);
+  parsed.metadata = {
+    ...(parsed.metadata || {}),
+    compiledAt: resolveCompileDate(),
+  };
 
   const validation = validateParsedSpec(parsed);
   if (!validation.ok) {
@@ -350,6 +391,7 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
   const questionsJson = JSON.stringify(parsed.questions, null, 2).replace(/<\//g, '<\\/');
   const resultsJson = JSON.stringify(resultsWithSections, null, 2).replace(/<\//g, '<\\/');
   const progressStepsJson = JSON.stringify(parsed.progressSteps, null, 2).replace(/<\//g, '<\\/');
+  const metadataJson = JSON.stringify(parsed.metadata || {}, null, 2).replace(/<\//g, '<\\/');
   const renderOptionsJson = JSON.stringify(renderConfig.options || {}, null, 2).replace(
     /<\//g,
     '<\\/'
@@ -362,6 +404,7 @@ function compileDecisionTree({ specPath, templatePath, outputPath }: CompileOpti
     questionsJson,
     resultsJson,
     progressStepsJson,
+    metadataJson,
     renderOptionsJson,
     searchEnabled,
     searchCollapsed: true,

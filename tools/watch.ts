@@ -3,7 +3,13 @@ import { pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
 import chokidar from 'chokidar';
 import { compileDecisionTree } from '#compiler/index';
-import { buildTopicOutputName, listTopics } from '#compiler/cli-utils';
+import { compileQuiz } from '#compiler/quiz-compiler';
+import {
+  buildQuizOutputName,
+  buildTopicOutputName,
+  listSpecDirectories,
+  listTopics,
+} from '#compiler/cli-utils';
 import { getConfig, type Config } from '#config';
 import { createLogger } from '#logger';
 
@@ -39,6 +45,21 @@ function compileTopic(config: Config, topic: string, templatePath?: string): voi
   logger.info(chalkInstance.green(`Compiled ${topic} in ${Date.now() - start}ms.`), { topic });
 }
 
+function compileQuizTopic(config: Config, topic: string): void {
+  const chalkInstance = getChalk();
+  const outputName = buildQuizOutputName(topic);
+  const start = Date.now();
+  logger.info(chalkInstance.cyan(`Compiling quiz ${topic}...`), { topic });
+  compileQuiz({
+    specPath: path.join(config.rootDir, 'quiz', ...topic.split('/'), 'spec.md'),
+    templatePath: path.join(config.rootDir, 'core', 'quiz-template.html'),
+    outputPath: path.join(config.outputDir, outputName),
+  });
+  logger.info(chalkInstance.green(`Compiled quiz ${topic} in ${Date.now() - start}ms.`), {
+    topic,
+  });
+}
+
 function runValidation(): boolean {
   const chalkInstance = getChalk();
   logger.info(chalkInstance.cyan('Validating specs...'));
@@ -54,13 +75,15 @@ function runValidation(): boolean {
 
 interface PendingBuild {
   all: boolean;
-  topics: Set<string>;
+  treeTopics: Set<string>;
+  quizTopics: Set<string>;
 }
 
 export async function startWatch(): Promise<void> {
   await loadChalk();
   const config = getConfig();
   const decisionTreesDir = config.decisionTreesDir;
+  const quizDir = path.join(config.rootDir, 'quiz');
   const coreDir = path.join(config.rootDir, 'core');
   const renderersDir = path.join(config.rootDir, 'renderers');
   const templatePath = config.templatePathOverride ?? undefined;
@@ -69,6 +92,7 @@ export async function startWatch(): Promise<void> {
     [
       path.join(decisionTreesDir, '**', 'spec.md'),
       path.join(decisionTreesDir, '**', 'render.json'),
+      path.join(quizDir, '**', 'spec.md'),
       path.join(coreDir, '**', '*'),
       path.join(renderersDir, '**', '*'),
     ],
@@ -78,7 +102,7 @@ export async function startWatch(): Promise<void> {
   );
 
   let debounceTimer: NodeJS.Timeout | null = null;
-  let pending: PendingBuild = { all: false, topics: new Set() };
+  let pending: PendingBuild = { all: false, treeTopics: new Set(), quizTopics: new Set() };
 
   function scheduleBuild(): void {
     if (debounceTimer) {
@@ -86,16 +110,25 @@ export async function startWatch(): Promise<void> {
     }
     debounceTimer = setTimeout(() => {
       const chalkInstance = getChalk();
-      const topics = pending.all ? listTopics(decisionTreesDir) : Array.from(pending.topics);
-      pending = { all: false, topics: new Set() };
-      if (!topics.length) {
-        logger.warn(chalkInstance.yellow('No topics found to compile.'), { decisionTreesDir });
+      const treeTopics = pending.all
+        ? listTopics(decisionTreesDir)
+        : Array.from(pending.treeTopics);
+      const quizTopics = pending.all
+        ? listSpecDirectories(quizDir)
+        : Array.from(pending.quizTopics);
+      pending = { all: false, treeTopics: new Set(), quizTopics: new Set() };
+      if (!treeTopics.length && !quizTopics.length) {
+        logger.warn(chalkInstance.yellow('No topics found to compile.'), {
+          decisionTreesDir,
+          quizDir,
+        });
         return;
       }
       if (!runValidation()) {
         return;
       }
-      topics.forEach((topic) => compileTopic(config, topic, templatePath));
+      treeTopics.forEach((topic) => compileTopic(config, topic, templatePath));
+      quizTopics.forEach((topic) => compileQuizTopic(config, topic));
     }, 300);
   }
 
@@ -106,24 +139,39 @@ export async function startWatch(): Promise<void> {
       return;
     }
 
-    const relative = path.relative(decisionTreesDir, filePath);
-    const normalized = relative.split(path.sep).join('/');
-    if (normalized.endsWith('/spec.md')) {
-      const topic = normalized.slice(0, -'/spec.md'.length);
-      if (topic) {
-        pending.topics.add(topic);
+    if (filePath.startsWith(decisionTreesDir)) {
+      const relative = path.relative(decisionTreesDir, filePath);
+      const normalized = relative.split(path.sep).join('/');
+      if (normalized.endsWith('/spec.md')) {
+        const topic = normalized.slice(0, -'/spec.md'.length);
+        if (topic) {
+          pending.treeTopics.add(topic);
+        }
+        scheduleBuild();
+        return;
       }
-      scheduleBuild();
-      return;
+
+      if (normalized.endsWith('/render.json')) {
+        const topic = normalized.slice(0, -'/render.json'.length);
+        if (topic) {
+          pending.treeTopics.add(topic);
+        }
+        scheduleBuild();
+        return;
+      }
     }
 
-    if (normalized.endsWith('/render.json')) {
-      const topic = normalized.slice(0, -'/render.json'.length);
-      if (topic) {
-        pending.topics.add(topic);
+    if (filePath.startsWith(quizDir)) {
+      const relative = path.relative(quizDir, filePath);
+      const normalized = relative.split(path.sep).join('/');
+      if (normalized.endsWith('/spec.md')) {
+        const topic = normalized.slice(0, -'/spec.md'.length);
+        if (topic) {
+          pending.quizTopics.add(topic);
+        }
+        scheduleBuild();
+        return;
       }
-      scheduleBuild();
-      return;
     }
 
     if (event === 'add' || event === 'unlink') {
@@ -134,6 +182,7 @@ export async function startWatch(): Promise<void> {
 
   logger.info(getChalk().green('Watching for changes...'), {
     decisionTreesDir,
+    quizDir,
     coreDir,
   });
 }

@@ -601,6 +601,14 @@ function createResultParser(dependencies: Partial<ResultParserDependencies> = {}
         return true;
       }
 
+      if (line.startsWith('**Expert Detail:**')) {
+        const expertText = stripQuotesFn(
+          cleanInlineTextFn(stripQuotesFn(extractAfterColonFn(line)))
+        );
+        context.current.data.expertDetail = renderInlineMarkdownFn(expertText);
+        return true;
+      }
+
       if (/^\*\*Breadcrumb/i.test(line)) {
         const breadcrumbText = normalizeTextFn(
           stripMarkdownFn(stripQuotesFn(extractAfterColonFn(line)))

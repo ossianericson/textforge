@@ -17,6 +17,7 @@ All notable changes to textforge.
 ### Changed
 
 - Repository content split into permanent `public/` and `internal/` areas for decision trees and quiz examples, with README source fragments for internal vs public views
+- Remove the redundant `compile:quiz` npm script; direct quiz compilation remains available via `dtb compile --mode quiz`
 - Compiler topic discovery, single-topic resolution, watch mode, and init scaffolding now support nested topic paths
 - Public example content is now limited to the multicloud compute tree and the quiz example
 - Public compile workflow now builds only the public tree and quiz examples
@@ -25,6 +26,8 @@ All notable changes to textforge.
 - Test architecture now separates enforced shared compiler tests from curated baseline example verification
 - Public export now ships the shared test suite, `npm test`, `npm run test:coverage`, and `npm run verify:public-examples`
 - CLI/init and README guidance now include explicit new-tree verification steps without making new trees automatic gating failures
+- Public export now verifies the generated `dist/public-export` snapshot end to end with install, build, compile, tests, public example verification, and spec validation before reporting success
+- Spec validation now uses parsed question routing for advanced input types, removing false positives in advanced public examples and keeping full repo-wide validation clean
 
 ## [1.6.0] - 2026-03-03
 

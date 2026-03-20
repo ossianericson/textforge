@@ -45,6 +45,14 @@ export const BASELINE_EXAMPLES: BaselineExample[] = [
     goldenSha256: 'a0d51a454f24ad02d0f9570bdd90be5a5bc1d1c4c028d68bb9248e2294b72800',
   },
   {
+    id: 'public-advanced-tree',
+    scope: 'public',
+    kind: 'decision-tree',
+    label: 'public advanced inputs example',
+    specPath: path.join(ROOT_DIR, 'decision-trees', 'public', 'example-advanced-inputs', 'spec.md'),
+    expectedOutputName: 'example-advanced-inputs-tree.html',
+  },
+  {
     id: 'internal-compute-tree',
     scope: 'internal',
     kind: 'decision-tree',

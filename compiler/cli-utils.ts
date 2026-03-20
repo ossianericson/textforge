@@ -51,12 +51,16 @@ function findSpecDirectories(rootDir: string, currentDir: string = rootDir): str
   return directories;
 }
 
-function listTopics(decisionTreesDir: string): string[] {
-  if (!fs.existsSync(decisionTreesDir)) {
+function listSpecDirectories(rootDir: string): string[] {
+  if (!fs.existsSync(rootDir)) {
     return [];
   }
 
-  return findSpecDirectories(decisionTreesDir).sort((left, right) => left.localeCompare(right));
+  return findSpecDirectories(rootDir).sort((left, right) => left.localeCompare(right));
+}
+
+function listTopics(decisionTreesDir: string): string[] {
+  return listSpecDirectories(decisionTreesDir);
 }
 
 function resolveTopic(decisionTreesDir: string, topic: string): string | null {
@@ -87,4 +91,15 @@ function buildTopicOutputName(topicPath: string): string {
   return `${normalizeTopicPath(topicPath).replace(/\//g, '-')}-tree.html`;
 }
 
-export { buildTopicOutputName, listTopics, parseArgs, resolveTopic };
+function buildQuizOutputName(topicPath: string): string {
+  return `${normalizeTopicPath(topicPath).replace(/\//g, '-')}-quiz.html`;
+}
+
+export {
+  buildQuizOutputName,
+  buildTopicOutputName,
+  listSpecDirectories,
+  listTopics,
+  parseArgs,
+  resolveTopic,
+};

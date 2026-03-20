@@ -8,6 +8,11 @@ export interface RenderOptions {
   showDocsButton?: boolean;
   showCopyLinkButton?: boolean;
   showContactSection?: boolean;
+  enableInlineTooltips?: boolean;
+  enableExpertToggle?: boolean;
+  enableVersionWatermark?: boolean;
+  enableFeedback?: boolean;
+  enableMobileCardUi?: boolean;
 }
 
 interface RenderOptionsInput {
@@ -15,6 +20,11 @@ interface RenderOptionsInput {
   showDocsButton?: boolean | undefined;
   showCopyLinkButton?: boolean | undefined;
   showContactSection?: boolean | undefined;
+  enableInlineTooltips?: boolean | undefined;
+  enableExpertToggle?: boolean | undefined;
+  enableVersionWatermark?: boolean | undefined;
+  enableFeedback?: boolean | undefined;
+  enableMobileCardUi?: boolean | undefined;
 }
 
 export interface TopicRenderConfig {
@@ -38,6 +48,14 @@ const RENDERER_DEFAULT_OPTIONS: Record<string, RenderOptions> = {
     showCopyLinkButton: false,
   },
   'html/reference-v1': { ...DEFAULT_RENDER_OPTIONS },
+  'html/default-v2': {
+    ...DEFAULT_RENDER_OPTIONS,
+    enableInlineTooltips: true,
+    enableExpertToggle: true,
+    enableVersionWatermark: true,
+    enableFeedback: true,
+    enableMobileCardUi: true,
+  },
 };
 
 const RenderOptionsSchema = z
@@ -46,6 +64,11 @@ const RenderOptionsSchema = z
     showDocsButton: z.boolean().optional(),
     showCopyLinkButton: z.boolean().optional(),
     showContactSection: z.boolean().optional(),
+    enableInlineTooltips: z.boolean().optional(),
+    enableExpertToggle: z.boolean().optional(),
+    enableVersionWatermark: z.boolean().optional(),
+    enableFeedback: z.boolean().optional(),
+    enableMobileCardUi: z.boolean().optional(),
   })
   .catchall(z.unknown());
 
@@ -67,6 +90,7 @@ function getRendererTemplateMap(rootDir: string): Record<string, string> {
     'html/default-v1': sharedV1TemplatePath,
     'html/copy-first-v1': sharedV1TemplatePath,
     'html/reference-v1': sharedV1TemplatePath,
+    'html/default-v2': path.join(rootDir, 'renderers', 'html', 'default-v2', 'template.html'),
   };
 }
 
@@ -88,6 +112,21 @@ function normalizeRenderOptions(options: RenderOptionsInput): RenderOptions {
   }
   if (typeof options.showContactSection === 'boolean') {
     normalized.showContactSection = options.showContactSection;
+  }
+  if (typeof options.enableInlineTooltips === 'boolean') {
+    normalized.enableInlineTooltips = options.enableInlineTooltips;
+  }
+  if (typeof options.enableExpertToggle === 'boolean') {
+    normalized.enableExpertToggle = options.enableExpertToggle;
+  }
+  if (typeof options.enableVersionWatermark === 'boolean') {
+    normalized.enableVersionWatermark = options.enableVersionWatermark;
+  }
+  if (typeof options.enableFeedback === 'boolean') {
+    normalized.enableFeedback = options.enableFeedback;
+  }
+  if (typeof options.enableMobileCardUi === 'boolean') {
+    normalized.enableMobileCardUi = options.enableMobileCardUi;
   }
 
   return normalized;

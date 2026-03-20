@@ -1,0 +1,10 @@
+{
+  "renderer": "html/default-v2",
+  "options": {
+    "enableInlineTooltips": true,
+    "enableExpertToggle": true,
+    "enableVersionWatermark": true,
+    "enableFeedback": true,
+    "enableMobileCardUi": true
+  }
+}
