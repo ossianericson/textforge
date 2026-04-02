@@ -1,33 +1,40 @@
-# Changelog
-
-All notable changes to textforge.
+## [Unreleased]
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-04-02
+
+### Added / Changed
+
+- Reworked the desktop editor UI with a grouped toolbar, richer onboarding, premium document styling, polished settings and progress panels, and a stronger visual hierarchy.
+- Replaced the old graph canvas with a live Mermaid sidebar and improved compact-window behavior with adaptive workspace switching and proper non-maximized scrolling.
+- Added editor regression coverage for the adaptive app shell, toolbar menu surfaces, empty-state scrolling, Mermaid sidebar behavior, and updated settings interactions.
+- Stabilized Windows Tauri development startup by logging the resolved MSVC bootstrap path and ensuring dev resource placeholders exist before launch.
+- Updated public-export documentation so the desktop editor is explicitly documented as part of the public distribution model.
+
+## [1.7.0] - 2026-03-22
+
 ### Added
 
-- Permanent public export automation via `npm run export:public`
-- README source fragments and build script for internal vs public repository views
-- Internal string guard used by the public export pipeline
-- Internal-source repository guard for public export
-- Curated baseline example manifest for public and internal reference trees/quizzes
-- Public baseline verification command with golden snapshot checks for shipped public outputs
-- Internal baseline verification command for curated internal reference examples
+- `prompts/` folder — build session prompts checked into the repository
+- Seven question input types: buttons, dropdown, dropdown-pair matrix,
+  multi-select, slider, toggle, and scoring matrix
+- Quiz output mode with parser, schema, compiler, and HTML template
+- Desktop editor (Tauri v2, React 18, TipTap v2) for Windows and macOS
+- Deep links: URL hash encodes tree state for bookmarking and sharing
+- Full-text search across result cards in every compiled tree
+- Golden SHA256 regression protection for all compiler baselines
+- Automated workflow scripts: health, PR creation, changelog update, and context export
+- Pre-commit spec validation via lint-staged
+- Branch guard blocks direct commits to main/master
+- Public/internal content boundary with export allowlist
 
 ### Changed
 
-- Repository content split into permanent `public/` and `internal/` areas for decision trees and quiz examples, with README source fragments for internal vs public views
-- Remove the redundant `compile:quiz` npm script; direct quiz compilation remains available via `dtb compile --mode quiz`
-- Compiler topic discovery, single-topic resolution, watch mode, and init scaffolding now support nested topic paths
-- Public example content is now limited to the multicloud compute tree and the quiz example
-- Public compile workflow now builds only the public tree and quiz examples
-- Public export now uses an explicit allowlist copy model and an allowlisted public `package.json` instead of copy-and-prune cleanup
-- README and deep-dive docs now describe the public/internal boundary and export workflow
-- Test architecture now separates enforced shared compiler tests from curated baseline example verification
-- Public export now ships the shared test suite, `npm test`, `npm run test:coverage`, and `npm run verify:public-examples`
-- CLI/init and README guidance now include explicit new-tree verification steps without making new trees automatic gating failures
-- Public export now verifies the generated `dist/public-export` snapshot end to end with install, build, compile, tests, public example verification, and spec validation before reporting success
-- Spec validation now uses parsed question routing for advanced input types, removing false positives in advanced public examples and keeping full repo-wide validation clean
+- README is now generated from `docs/readme/shared.md` source fragments
+- Generated-file banner added to README.md
+- Fork disclaimer replaced with direct "fork it and own it" language
+- Version bumped from 1.6.0 to 1.7.0
 
 ## [1.6.0] - 2026-03-03
 
@@ -60,118 +67,6 @@ All notable changes to textforge.
 ## [1.4.0] - 2026-03-01
 
 ### Changed
-
-- Remove azure- output filename prefix and align legacy tree folder names
-- Add public example decision tree and update README/docs for public release
-- Align coverage gate to 80% and fix data services output test path
-- Update init messaging, README version handling, and package metadata for public use
-
-## [1.3.7] - 2026-02-19
-
-### Changed
-
-- Render list content with inline links and mailto addresses across outputs
-- Support section links render inline (no duplicate link rows)
-- Azure troubleshooting support links and docs cleaned up for clarity
-- Data services "When NOT to use" duplicates removed
-- Compute responsibility section ordering improved
-- Validator guardrails for HTML tags in result lists and contact/Teams channel lines
-- Output guardrail test added for escaped formatting tags
-
-## [1.3.6] - 2026-02-18
-
-### Changed
-
-- Build/publish pipeline hardening, validation upgrades, and security/accessibility template updates
-- Documentation cleanup and policy additions
-
-## [1.3.5] - 2026-02-18
-
-### Changed
-
-> These changes complete the full TypeScript migration started in v1.3.4.
-
-- Migrated all remaining JavaScript files to TypeScript (config, tools, scripts)
-- Removed `tsconfig.parsers.json` — single `tsconfig.json` now covers the entire project
-- Removed `typecheck:parsers` script — no longer needed with full TypeScript coverage
-- Updated all `package.json` script entrypoints to use compiled `dist/` output
-
-### Removed
-
-- `core/quick-reference.md` — content consolidated into `decision-tree.rules.md`
-
-## [1.3.4] - 2026-02-15
-
-### Changed
-
-- Compiler/parsers: fully migrated to TypeScript with NodeNext module resolution
-- Tests: migrated to TypeScript; run via Node test runner with tsx loader
-- Imports: add conditional import maps for dev TypeScript vs dist JavaScript
-- Docs: clarify compiler/parser TypeScript migration status and update contribution guidance
-
-## [1.3.3] - 2026-02-15
-
-### Added
-
-- Compiler: section-driven result rendering data (`sections`) and optional question context capture
-- Docs: prompt files now live under the internal docs prompt area for emphasis notes
-
-### Changed
-
-- Deep links: hash path now stores question/result IDs for stable replay
-- Navigation: missing targets render an in-page warning with a Start Over action; startup validation shows a warning banner
-- Badges: generate CSS only for badge classes used in the current tree
-- Output: remove legacy result fields after section generation to reduce HTML size
-- Accessibility: skip link, focus-visible rings, ARIA progress/breadcrumbs, keyboard navigation for search results, reduced motion support
-- Security: escape text fields before rendering and add `rel="noopener noreferrer"` to external links
-
-## [1.3.2] - 2026-02-15
-
-### Changed
-
-- UI: enforce 48px minimum option button height for mobile tap targets
-- UI: render explicit Contact sections in result cards and derive breadcrumb labels for cleaner trails
-- Compiler: parse Contact and Breadcrumb fields in result cards; support unicode bullet markers in lists
-- Validator: add warnings for missing "I don't know" options, Info Box placement, link format, and uneven progress steps
-- Rules/templates: align author checklists and templates with new contact, breadcrumb, and option guidance
-- Specs: add guidance options, action-oriented titles, contact blocks, and progress step spacing updates across decision trees
-
-### Added
-
-- UI: fallback contact extraction from responsibility/support sections when explicit Contact is missing
-- Badges: add urgent/standard/advanced/danger palette for consistent badge class mapping
-
-### Changed
-
-- DR architecture: dropdown-pair matrix UI with active cell highlight, tier-cued inputs, and refreshed matrix palette
-
-## [1.3.1] - 2026-02-13
-
-### Added
-
-- Azure DR Architecture decision tree (12 results, 6 questions) covering Backup & Restore, Pilot Light, Warm Standby, and Multi-site Active-Active strategies
-- DR tree references existing compute and data platform patterns across multiple service types
-- Cross-cutting results for Key Vault, App Configuration, Identity, Networking/DNS failover, and DR validation/testing
-- Recovery-assessment guidance result for teams that have not completed their assessment
-- Companion prompt file for DR architecture tree
-
-> Note: The DR spec was restructured in v1.3.1; see the current spec for up-to-date counts.
-
-## [1.3.0] - 2026-02-13
-
-### Added
-
-- **Deep links (Feature 10):** Tree state is encoded in the URL hash (`#path=...`). Users can bookmark or share any point in the tree. On load, the tree replays the encoded path. "Copy Link" button added to all result cards.
-- **Search / filter (Feature 3):** Search bar above the navigation allows users to type keywords and jump directly to matching result cards. Search indexes result title, badge, Tech Tags, Search Tags (optional), and "Best For" items. Keyboard navigable (arrow keys, Enter, Escape).
-- **Dropdown question type (Feature 1):** New `**Type**: dropdown` spec syntax renders a `<select>` with range-to-target mapping instead of buttons. Ideal for numeric inputs (risk scores, team size, data volume). Range hints displayed below the dropdown. Validator checks for contiguous ranges with no gaps or overlaps.
-
-### Changed
-
-- `core/base-template.html` updated with search bar, deep link hash logic, dropdown renderer, and "Copy Link" button on result cards
-- `decision-tree.rules.md` updated with dropdown syntax section, search tags documentation, and dropdown validation in automated checks
-- `selectOption()` now accepts optional `silent` parameter (used during deep link replay to skip hash writes)
-- `validateOptionTargets()` now also validates dropdown range targets on startup audit
-- Result cards include optional `searchTags` field in Zod schema
 
 ### Migration Notes
 

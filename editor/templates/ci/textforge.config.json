@@ -1,0 +1,6 @@
+{
+  "decisionTreesDir": "decision-trees",
+  "outputDir": "output",
+  "defaultRenderer": "html/default-v1",
+  "badgePath": "node_modules/textforge/core/badges.yml"
+}

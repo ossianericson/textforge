@@ -91,7 +91,7 @@ test('compile-all builds decision tree topics and discovered quiz outputs', () =
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.ok(fs.existsSync(path.join(outputDir, 'internal-example-topic-tree.html')));
-    assert.ok(fs.existsSync(path.join(outputDir, 'public-example-quiz.html')));
+    assert.ok(fs.existsSync(path.join(outputDir, 'public-example-azure-fundamentals-quiz.html')));
   } finally {
     fs.rmSync(decisionTreesDir, { recursive: true, force: true });
     fs.rmSync(outputDir, { recursive: true, force: true });

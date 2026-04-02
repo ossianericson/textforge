@@ -1,1 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Branch guard - block direct commits to main or master
+BRANCH=$(git branch --show-current)
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+	echo ""
+	echo "⛔ Direct commits to $BRANCH are not allowed."
+	echo "   Create a feature branch first:"
+	echo "   git checkout -b feature/textforge-your-change"
+	echo ""
+	exit 1
+fi
+
 npx lint-staged

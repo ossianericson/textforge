@@ -1,0 +1,40 @@
+[package]
+name = "textforge-editor"
+version = "0.2.0"
+description = "textforge Visual Editor"
+authors = []
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "textforge_editor_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-shell = "2"
+azure_identity = "0.20"
+azure_core = "0.20"
+reqwest = { version = "0.13", default-features = false, features = ["json", "query", "rustls"] }
+chrono = { version = "0.4", features = ["serde"] }
+base64 = "0.22"
+open = "5"
+git2 = { version = "0.19", features = ["vendored-libgit2"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+keyring = "2"
+zeroize = { version = "1", features = ["zeroize_derive"] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
+

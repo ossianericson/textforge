@@ -57,6 +57,16 @@ test('public baseline: example quiz compiles successfully', () => {
     assert.ok(fs.existsSync(outputPath), 'Expected compiled output for the public quiz example.');
     const html = fs.readFileSync(outputPath, 'utf8');
     assertCompiledHtml({ html, kind: 'quiz', specLabel: 'public quiz example' });
+    assert.doesNotMatch(
+      html,
+      /Study Cards|id="studySection"|mode-toggle/i,
+      'Expected quiz output to render as a pure quiz app without study-card mode.'
+    );
+    assert.match(
+      html,
+      /id="quizSection"/i,
+      'Expected quiz section markup in compiled public quiz output.'
+    );
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

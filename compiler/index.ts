@@ -46,45 +46,127 @@ function normalizeId(id: unknown): string {
   return (id ?? '').toString().toLowerCase().trim();
 }
 
+function resolveDynamicTargets(target: string): string[] {
+  const tierValues = ['critical', 'high', 'medium', 'low'];
+  if (!target.includes('{tier}')) {
+    return [target];
+  }
+  return tierValues.map((tier) => target.replace('{tier}', tier));
+}
+
+function collectQuestionTargets(question: ParsedSpec['questions'][string]): string[] {
+  const targets = (question.options || []).map((option) => option.next);
+  (question.dropdownRanges || []).forEach((range) => targets.push(range.next));
+  (question.sliderRanges || []).forEach((range) => targets.push(range.next));
+  (question.scoringMatrixRoutes || []).forEach((range) => targets.push(range.next));
+  (question.multiSelectRoutes || []).forEach((route) => targets.push(route.next));
+  if (question.multiSelectFallback) {
+    targets.push(question.multiSelectFallback);
+  }
+  if (question.toggleOnNext) {
+    targets.push(question.toggleOnNext);
+  }
+  if (question.toggleOffNext) {
+    targets.push(question.toggleOffNext);
+  }
+
+  Object.values(question.dropdownMatrix || {}).forEach((row) => {
+    Object.values(row || {}).forEach((target) => {
+      targets.push(target);
+    });
+  });
+
+  return targets;
+}
+
+function detectDeadEnds(parsed: ParsedSpec): string[] {
+  const warnings: string[] = [];
+  const questions = parsed.questions || {};
+  const results = parsed.results || {};
+  const questionIds = Object.keys(questions);
+  const resultIds = Object.keys(results);
+
+  if (!questionIds.length) {
+    return warnings;
+  }
+
+  const referencedQuestionIds = new Set<string>();
+  Object.values(questions).forEach((question) => {
+    collectQuestionTargets(question).forEach((rawTarget) => {
+      resolveDynamicTargets(rawTarget).forEach((target) => {
+        const normalizedTarget = normalizeId(target);
+        if (normalizedTarget && normalizedTarget in questions) {
+          referencedQuestionIds.add(normalizedTarget);
+        }
+      });
+    });
+  });
+
+  const rootCandidates = questionIds.filter((questionId) => !referencedQuestionIds.has(questionId));
+  const rootId =
+    rootCandidates.length === 1 ? rootCandidates[0]! : questions.q1 ? 'q1' : questionIds[0]!;
+
+  const reachableQuestions = new Set<string>();
+  const reachableResults = new Set<string>();
+  const queue: string[] = [rootId];
+
+  while (queue.length) {
+    const currentId = queue.shift()!;
+    if (reachableQuestions.has(currentId)) {
+      continue;
+    }
+
+    const question = questions[currentId];
+    if (!question) {
+      continue;
+    }
+
+    reachableQuestions.add(currentId);
+    collectQuestionTargets(question).forEach((rawTarget) => {
+      resolveDynamicTargets(rawTarget).forEach((target) => {
+        const normalizedTarget = normalizeId(target);
+        if (!normalizedTarget) {
+          return;
+        }
+        if (normalizedTarget in questions) {
+          queue.push(normalizedTarget);
+          return;
+        }
+        if (normalizedTarget in results) {
+          reachableResults.add(normalizedTarget);
+        }
+      });
+    });
+  }
+
+  questionIds.forEach((questionId) => {
+    if (!reachableQuestions.has(questionId)) {
+      warnings.push(`Question "${questionId}" is unreachable from the root question.`);
+      return;
+    }
+
+    if (!collectQuestionTargets(questions[questionId]!).length) {
+      warnings.push(
+        `Question "${questionId}" has no navigation targets — users will be stranded here.`
+      );
+    }
+  });
+
+  resultIds.forEach((resultId) => {
+    if (!reachableResults.has(resultId)) {
+      warnings.push(`Result "${resultId}" is unreachable — no path leads to it.`);
+    }
+  });
+
+  return warnings;
+}
+
 function validateSpec(parsed: ParsedSpec): string[] {
   const warnings: string[] = [];
   const questions = parsed.questions || {};
   const results = parsed.results || {};
   const questionIds = new Set(Object.keys(questions).map(normalizeId));
   const resultIds = new Set(Object.keys(results).map(normalizeId));
-  const tierValues = ['critical', 'high', 'medium', 'low'];
-
-  const resolveDynamicTargets = (target: string): string[] => {
-    if (!target.includes('{tier}')) {
-      return [target];
-    }
-    return tierValues.map((tier) => target.replace('{tier}', tier));
-  };
-
-  const collectQuestionTargets = (question: ParsedSpec['questions'][string]): string[] => {
-    const targets = (question.options || []).map((option) => option.next);
-    (question.dropdownRanges || []).forEach((range) => targets.push(range.next));
-    (question.sliderRanges || []).forEach((range) => targets.push(range.next));
-    (question.scoringMatrixRoutes || []).forEach((range) => targets.push(range.next));
-    (question.multiSelectRoutes || []).forEach((route) => targets.push(route.next));
-    if (question.multiSelectFallback) {
-      targets.push(question.multiSelectFallback);
-    }
-    if (question.toggleOnNext) {
-      targets.push(question.toggleOnNext);
-    }
-    if (question.toggleOffNext) {
-      targets.push(question.toggleOffNext);
-    }
-
-    Object.values(question.dropdownMatrix || {}).forEach((row) => {
-      Object.values(row || {}).forEach((target) => {
-        targets.push(target);
-      });
-    });
-
-    return targets;
-  };
 
   Object.entries(questions).forEach(([questionId, question]) => {
     collectQuestionTargets(question).forEach((rawTarget) => {
@@ -106,6 +188,8 @@ function validateSpec(parsed: ParsedSpec): string[] {
   if (Object.values(progress).length && progress.q1 !== 0) {
     warnings.push('Progress steps should start at 0% for "q1".');
   }
+
+  warnings.push(...detectDeadEnds(parsed));
 
   return warnings;
 }
@@ -491,5 +575,9 @@ const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMain) {
   main();
 }
+
+export const __testUtils = {
+  detectDeadEnds,
+};
 
 export { compileDecisionTree };

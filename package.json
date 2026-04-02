@@ -1,6 +1,6 @@
 {
   "name": "textforge",
-  "version": "1.6.0",
+  "version": "1.8.0",
   "private": false,
   "description": "One spec. One compiler. Any interactive tool your domain expert can describe in plain text.",
   "license": "UNLICENSED",
@@ -56,7 +56,7 @@
     "validate:spec:fix": "node -e \"const fs=require('node:fs');const cp=require('node:child_process');const cmd=fs.existsSync('dist/tools/validate-spec.js')?'node dist/tools/validate-spec.js --fix':'npx tsx tools/validate-spec.ts --fix';cp.execSync(cmd,{stdio:'inherit'});\"",
     "precompile:watch": "npm run build",
     "compile:watch": "node dist/tools/watch.js",
-    "pretest": "npm run build",
+    "pretest": "node -e \"const fs=require('node:fs');if(!fs.existsSync('dist')){console.error('Run npm run build before npm test.');process.exit(1);}\"",
     "test": "npm run test:shared",
     "test:shared": "cross-env NODE_ENV=test node --test --import tsx --conditions=development \"tests/*.test.ts\"",
     "verify:corpus": "cross-env NODE_ENV=test node --test --import tsx --conditions=development \"tests/corpusCompile.test.ts\"",
@@ -78,7 +78,7 @@
     "chalk": "^5.6.2",
     "chokidar": "^5.0.0",
     "dotenv": "^17.2.4",
-    "handlebars": "4.7.8",
+    "handlebars": "^4.7.9",
     "js-yaml": "^4.1.0",
     "zod": "^3.23.8"
   },
@@ -114,6 +114,9 @@
     ],
     "*.{json,md}": [
       "prettier --write"
+    ],
+    "**/spec.md": [
+      "npm run validate:spec"
     ]
   }
 }

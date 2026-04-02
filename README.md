@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — do not edit directly.
+  Source: docs/readme/shared.md + docs/readme/internal.md
+  Regenerate: npm run readme:internal
+  Public view: npm run readme:public -->
+
 # textforge
 
 > One spec. One compiler. Any interactive tool your domain expert can describe in plain text.
@@ -5,6 +10,8 @@
 **textforge** is a Markdown-to-HTML compiler that turns structured specification files into fully interactive, self-contained decision trees and quizzes. The runtime is deterministic: the same spec produces the same HTML every time.
 
 It is designed to run anywhere HTML can run: browser, wiki, SharePoint, Confluence, or static hosting. No server. No plugin. No runtime AI.
+
+You write the spec. The compiler handles everything else.
 
 ## Why This Exists
 
@@ -29,6 +36,8 @@ The underlying principle is simple:
 
 textforge uses AI during design and development. It removes AI from the runtime and keeps the delivered artifact deterministic.
 
+You can write specs by hand in any text editor. You can also use the companion desktop editor — a visual editing surface for Windows and macOS that writes back to the spec file. Either way, the spec is the source of truth. The editor is a window into it.
+
 For the architectural philosophy behind that approach, see [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b)
 
 ## What It Produces
@@ -41,6 +50,45 @@ An interactive output with:
 - Full-text search across results
 - Keyboard navigation and ARIA accessibility
 - Zero server dependencies
+
+## The Editor
+
+textforge ships with a companion desktop editor for Windows and macOS.
+
+The editor gives you a visual editing surface for spec files while keeping `spec.md`
+as the source of truth. Changes are written back to the spec — the editor never
+becomes the source.
+
+The editor is not required. The compiler CLI works without it.
+The editor builds on top of the compiler and adds:
+
+- Visual block editing of questions and result cards
+- Live validation with inline error feedback
+- AI-assisted tree and quiz generation (Azure OpenAI or OpenAI key)
+- One-click compile and preview
+- Git commit and push from inside the editor
+- Confluence publish
+
+The editor is built with Tauri v2, React 18, and TipTap v2.
+It is distributed as a self-contained installer — no Node.js or Rust required to run it.
+Local desktop release bundles are staged under `artifacts/editor/<version>/<platform>/`.
+
+For a system-level overview, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For credential storage, audit logging, and security controls, see [SECURITY.md](SECURITY.md) and [docs/security/controls-mapping.md](docs/security/controls-mapping.md).
+
+### Editor Testing Policy
+
+React component changes in the editor are guarded by an automated testing policy:
+
+- Vitest is the default unit and integration test runner.
+- React Testing Library with user-centric selectors is the default component testing approach.
+- `@testing-library/user-event` is the default interaction layer.
+- Playwright is reserved for end-to-end coverage.
+- HTTP API calls should be intercepted with MSW instead of ad hoc request mocks.
+- Every React component change should add or update a matching `.test.tsx` file.
+- Multi-state components should capture loading, error, and success states in Storybook when stories exist for that surface.
+
+The editor release scripts now run `npm run editor:test` before packaging so UI regressions block desktop builds instead of slipping into release artifacts.
 
 ## Prerequisites
 
@@ -76,7 +124,7 @@ npm run compile
 
 This compiles every local decision tree under `decision-trees/**/spec.md` and every quiz under `quiz/**/spec.md`.
 
-Outputs from scoped paths are flattened under `output/`, for example `output/internal-azure-compute-tree.html` and `output/public-example-quiz.html`.
+Outputs from scoped paths are flattened under `output/`, for example `output/internal-azure-compute-tree.html` and `output/public-example-azure-fundamentals-quiz.html`.
 
 To compile the public examples only:
 
@@ -87,7 +135,7 @@ npm run compile:public
 That command builds the curated public release artifacts with the shipped output names:
 
 - `decision-trees/public/example-multicloud-compute/spec.md`
-- `quiz/public/example/spec.md`
+- `quiz/public/example/azure-fundamentals/spec.md`
 
 ## Examples
 
@@ -98,7 +146,7 @@ That command builds the curated public release artifacts with the shipped output
 
 ### Quiz
 
-- **File:** `output/example-quiz.html`
+- **File:** `output/example-azure-fundamentals-quiz.html`
 - **What it is:** A standalone HTML quiz with scoring and result output.
 
 ## How Specs Work
@@ -112,28 +160,20 @@ spec.md -> parser -> schema validation -> renderer -> output HTML
 ```text
 textforge/
 ├── decision-trees/
-│   ├── public/example-multicloud-compute/spec.md
-│   └── internal/<topic>/spec.md
+│   └── <scope>/<topic>/spec.md
 ├── quiz/
-│   ├── public/example/spec.md
-│   └── internal/<topic>/spec.md
+│   └── <scope>/<topic>/spec.md
 ```
 
 Decision trees live under `decision-trees/`.
 Quiz examples live under `quiz/`.
-New internal trees should be created under `decision-trees/internal/` unless they are intentionally promoted to `decision-trees/public/`.
-Quiz examples follow the same boundary: internal quiz content belongs under `quiz/internal/`, while public examples belong under `quiz/public/`.
+Use the appropriate scope path for the content you are authoring.
 
 ## Pattern
 
 The content model is the product. The compiler stays generic. Renderer profiles and per-topic `render.json` options allow output differences without forking the compiler for each tree.
 
-The repository now follows a permanent content boundary:
-
-- `decision-trees/public/` and `quiz/public/` hold the only example content intended for public release.
-- `decision-trees/internal/` and `quiz/internal/` hold internal-only content.
-- `docs/readme/internal.md` holds internal-only README additions used only in the internal view.
-- `scripts/export-public.ts` and `scripts/internal-strings.ts` enforce the public release boundary.
+The repository uses scope-based content boundaries so public example material and non-public authoring content can be managed separately.
 
 ## Create Your Own Tree
 
@@ -167,7 +207,9 @@ Key rules:
 
 For a working public example, see `decision-trees/public/example-multicloud-compute/spec.md`.
 
-Need more depth? See [docs/deep-dive.md](docs/deep-dive.md).
+Need more depth? See [docs/deep-dive.md](docs/deep-dive.md), [ARCHITECTURE.md](ARCHITECTURE.md), and [SECURITY.md](SECURITY.md).
+
+Renderer details and `render.json` examples live in [docs/renderers.md](docs/renderers.md).
 
 ### New Tree Checklist
 
@@ -199,6 +241,15 @@ When you compile with an explicit scoped path, the generated file name is flatte
 
 To confirm the shipped baseline examples still work out of the box, run `npm run verify:public-examples`.
 
+## Generator Prompts
+
+Use these prompt files when drafting content with a model:
+
+| File                                                                                                             | Purpose                                                          |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [docs/generators/decision-tree-spec-generator-prompt.md](docs/generators/decision-tree-spec-generator-prompt.md) | Generate a first-pass decision tree spec for a new domain topic. |
+| [docs/generators/quiz-spec-generator-prompt.md](docs/generators/quiz-spec-generator-prompt.md)                   | Generate a quiz or study set spec for learning-oriented content. |
+
 ## Using AI to Generate a Spec
 
 Generator prompts live under `docs/generators/` and are intended for design-time use only.
@@ -223,7 +274,7 @@ npm run compile:topic -- <scope>/<topic>
 ## Direct Quiz Compile
 
 ```bash
-dtb compile --mode quiz --spec quiz/public/example/spec.md --output output/example-quiz.html
+dtb compile --mode quiz --spec quiz/public/example/azure-fundamentals/spec.md --output output/example-azure-fundamentals-quiz.html
 ```
 
 Use this only when you want to compile one quiz spec directly instead of using the repository-level `npm run compile` or `npm run compile:public` commands.
@@ -349,7 +400,34 @@ See [LICENSE](LICENSE).
 
 ---
 
+## What's New in v1.8.0
+
+- **Adaptive desktop editor shell** — the Tauri editor now uses a clearer grouped toolbar, richer onboarding, stronger document hierarchy, and a more polished settings and progress experience.
+- **Live Mermaid workspace** — the editor’s graph surface now renders a live Mermaid view, making branch shape and result density easier to inspect while authoring.
+- **Smaller-window support** — non-maximized windows now use adaptive workspace switching and proper scrolling instead of clipping the UI.
+- **Public desktop distribution clarity** — the public export now explicitly includes the desktop editor source and release-layout guidance for downstream users.
+- **Regression coverage for editor UX** — targeted tests now protect compact-window behavior, menu surfaces, empty-state scrolling, Mermaid sidebar behavior, and updated settings controls.
+
 ## Public Additions
+
+## Engineering Approach
+
+textforge is built with an AI-assisted development workflow, but it does not
+depend on AI to run.
+
+The important boundary is simple:
+
+- The spec is the source of truth
+- The compiler is deterministic
+- The compiled HTML is self-contained
+- The test suite, validation rules, and golden outputs are the quality gate
+
+AI is used during design and implementation to move faster, but the shipped
+product remains understandable, reviewable, and maintainable without AI
+tooling.
+
+For the public workflow rationale and process model, see
+[docs/ai-workflow.md](docs/ai-workflow.md).
 
 In the public export, new topics should normally use the `public` scope. For example:
 
@@ -370,7 +448,7 @@ Open a GitHub Issue for bugs, questions, or discussion.
 
 ### Community Inspiration Package
 
-textforge is shared as a community inspiration package. Teams that adopt it should own their fork, dependency management, security review, and production readiness.
+**Fork it and own it.** The real value is not the scaffolding — it is the knowledge your domain experts put into the specs. textforge gives you the pattern. Your content gives it meaning. Fork it, adapt it, make it yours.
 
 ### Author
 
@@ -379,3 +457,29 @@ textforge is shared as a community inspiration package. Teams that adopt it shou
 - **Role:** Cloud architect with 25+ years of experience in mission-critical financial services
 - **Connect:** [LinkedIn](https://www.linkedin.com/in/ossian-ericson/)
 - **Read:** [The Spec Is the Product. The Model Is Scaffolding.](https://medium.com/@ossian.ericson/the-spec-is-the-product-the-model-is-scaffolding-a78029c0062b)
+- **Read:** [MEDIUM_ARTICLE_URL_HERE] ← replace with the new article URL before merging
+
+## Desktop Editor
+
+A visual editing surface for spec files is included in the public export under `editor/`. It is a [Tauri v2](https://tauri.app/) desktop application for Windows and macOS, and it is part of the public distribution model rather than an internal-only tool.
+
+**Prerequisites:** Node.js 22-24, Rust stable, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your platform.
+
+```bash
+cd editor
+npm install
+npm run tauri dev
+```
+
+Pre-built installers are published to the project's Azure Artifacts feed for each release.
+The public export also includes [artifacts/editor/README.md](artifacts/editor/README.md) so downstream users can see how staged desktop bundles are structured.
+
+## Security
+
+This project follows a security-by-design approach. See [SECURITY.md](SECURITY.md) for the full security policy and [docs/security/](docs/security/) for the controls mapping and threat model. Key properties:
+
+- The Rust backend provides memory safety guarantees at compile time.
+- All AI calls use HTTPS with TLS 1.3 minimum via rustls.
+- The Tauri IPC bridge is an explicit allowlist; only registered commands are callable from the frontend.
+- File path access uses an allowlist of permitted root directories.
+- Dependency vulnerability scanning runs on every CI build.

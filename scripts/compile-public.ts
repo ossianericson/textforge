@@ -32,12 +32,12 @@ function main(): void {
   });
 
   compileQuiz({
-    specPath: path.join(rootDir, 'quiz', 'public', 'example', 'spec.md'),
+    specPath: path.join(rootDir, 'quiz', 'public', 'example', 'azure-fundamentals', 'spec.md'),
     templatePath: path.join(rootDir, 'core', 'quiz-template.html'),
-    outputPath: path.join(config.outputDir, 'example-quiz.html'),
+    outputPath: path.join(config.outputDir, 'example-azure-fundamentals-quiz.html'),
   });
 
-  process.stdout.write('Compiled public decision tree examples and quiz example.\n');
+  process.stdout.write('Compiled public decision tree examples and public quiz examples.\n');
 }
 
 main();

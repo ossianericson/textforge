@@ -2,7 +2,8 @@
 
 **Version:** v2.0
 **Date:** 2026-03-20
-**Status:** Example
+**Status:** 📖 Public example
+**Deployment:** GitHub Pages — public demo
 
 ---
 
@@ -17,24 +18,87 @@
 
 ## Decision Tree Flow
 
-### Q1: Budget (id="q1")
+### Q1: Input Type Tour Start (id="q1")
 
-**Title**: "What monthly budget range fits this workload?"
-**Subtitle**: "Use the slider to choose a realistic operating budget."
+**Title**: "Choose how to explore advanced inputs"
+**Subtitle**: "This public example is a guided tour. Start from here to see every input type in one run."
+**Options**:
+
+1. "Start guided tour (recommended)" → go to q2
+2. "Restart from the beginning" → go to q2
+3. "I don't know / show quick guidance" → result: result-guidance
+
+---
+
+### Q2: Dropdown Demo (id="q2")
+
+**Title**: "[Dropdown] Select a compliance profile"
+**Subtitle**: "This question demonstrates a single dropdown with range routing."
+**Type**: dropdown
+**Dropdown**:
+
+- Label: "Compliance profile"
+- Range: 1 (Baseline) → go to q3
+- Range: 2 (Regulated) → go to q3
+- Range: 3 (Strict) → go to q3
+
+---
+
+### Q3: Dropdown Pair Demo (id="q3")
+
+**Title**: "[Dropdown Pair] Select RTO and RPO buckets"
+**Subtitle**: "This demonstrates two linked dropdowns with a routing matrix."
+**Type**: dropdown-pair
+**Dropdown Left**:
+
+- Label: "Select RTO bucket"
+- Range: 10 (10 Minutes) → bucket: rto-10m
+- Range: 120 (2 Hours) → bucket: rto-2h
+
+**Dropdown Right**:
+
+- Label: "Select RPO bucket"
+- Range: 1 (1 Minute) → bucket: rpo-1m
+- Range: 60 (1 Hour) → bucket: rpo-1h
+
+**Matrix**:
+
+- rto-10m + rpo-1m → go to q4
+- rto-10m + rpo-1h → go to q4
+- rto-2h + rpo-1m → go to q4
+- rto-2h + rpo-1h → go to q4
+
+---
+
+### Q4: Slider Demo (id="q4")
+
+**Title**: "[Slider] Set monthly budget"
+**Subtitle**: "This demonstrates numeric slider input with range-based navigation."
 **Type**: slider
 **Slider**:
 
 - Label: "Monthly budget (USD)"
-- Range: 0–500 → go to q2a
-- Range: 501–2000 → go to q2b
-- Range: 2001–10000 → result: result-premium
+- Range: 0–500 → go to q5
+- Range: 501–2000 → go to q5
+- Range: 2001–10000 → go to q5
 
 ---
 
-### Q2a: Requirements (id="q2a")
+### Q5: Toggle Demo (id="q5")
 
-**Title**: "Do DPA and DPIA obligations apply?"
-**Subtitle**: "Select every requirement that materially shapes the recommendation."
+**Title**: "[Toggle] Is the workload customer-facing?"
+**Subtitle**: "This demonstrates binary routing using On and Off branches."
+**Type**: toggle
+**Label**: "Customer-facing"
+**On** → go to q6
+**Off** → go to q6
+
+---
+
+### Q6: Multi-select Demo (id="q6")
+
+**Title**: "[Multi-select] Choose all applicable requirements"
+**Subtitle**: "This demonstrates exact-set route matching plus a fallback path."
 **Type**: multi-select
 **Tooltips**:
 
@@ -43,31 +107,20 @@
   **Options**:
 
 1. "High availability required"
-2. "Budget constrained"
+2. "Cost sensitivity"
 3. "Regulated data"
    **Routes**:
 
-- "High availability required" + "Regulated data" → result: result-standard
-- "Budget constrained" → result: result-guidance
-- fallback → go to q3a
+- "High availability required" + "Regulated data" → go to q7
+- "Cost sensitivity" → go to q7
+- fallback → go to q7
 
 ---
 
-### Q2b: Exposure (id="q2b")
+### Q7: Scoring Matrix Demo (id="q7")
 
-**Title**: "Should the solution prioritize uptime over simplicity?"
-**Subtitle**: "A customer-facing surface usually pushes the recommendation upward."
-**Type**: toggle
-**Label**: "Is this customer-facing?"
-**On** → go to q3a
-**Off** → result: result-basic
-
----
-
-### Q3a: Priority Score (id="q3a")
-
-**Title**: "Score the workload priorities"
-**Subtitle**: "Set a score for each category, then continue."
+**Title**: "[Scoring Matrix] Score workload priorities"
+**Subtitle**: "Final demo step: score categories, then route by total score."
 **Type**: scoring-matrix
 **Categories**: Security, Cost, Performance, Scalability
 **Scale**: 1–5
@@ -254,9 +307,12 @@ Capture missing requirements before committing to a platform tier.
 ```javascript
 const progressSteps = {
   q1: 0,
-  q2a: 40,
-  q2b: 40,
-  q3a: 80,
+  q2: 13,
+  q3: 27,
+  q4: 40,
+  q5: 53,
+  q6: 67,
+  q7: 80,
   result: 100,
 };
 ```

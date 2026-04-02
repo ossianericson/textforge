@@ -32,17 +32,17 @@ export const BASELINE_EXAMPLES: BaselineExample[] = [
       'spec.md'
     ),
     expectedOutputName: 'example-multicloud-compute-tree.html',
-    goldenSha256: 'b047c01ae4b48d017b56ef118b7fd6b9b47bea67c15dec9636a3a717129d3130',
+    goldenSha256: 'e2e62295d5645bd649749eaf3ede155a7965ad9bf47c8cbee1dd4222b0f8bbd4',
   },
   {
     id: 'public-quiz',
     scope: 'public',
     kind: 'quiz',
-    label: 'public quiz example',
-    specPath: path.join(ROOT_DIR, 'quiz', 'public', 'example', 'spec.md'),
+    label: 'public azure fundamentals quiz example',
+    specPath: path.join(ROOT_DIR, 'quiz', 'public', 'example', 'azure-fundamentals', 'spec.md'),
     templatePath: path.join(ROOT_DIR, 'core', 'quiz-template.html'),
-    expectedOutputName: 'example-quiz.html',
-    goldenSha256: 'a0d51a454f24ad02d0f9570bdd90be5a5bc1d1c4c028d68bb9248e2294b72800',
+    expectedOutputName: 'example-azure-fundamentals-quiz.html',
+    goldenSha256: '7884fdf76b5eecd3f537646fc5d6d4adce818bff906e8d4aad008b482be0b452',
   },
   {
     id: 'public-advanced-tree',
@@ -51,6 +51,7 @@ export const BASELINE_EXAMPLES: BaselineExample[] = [
     label: 'public advanced inputs example',
     specPath: path.join(ROOT_DIR, 'decision-trees', 'public', 'example-advanced-inputs', 'spec.md'),
     expectedOutputName: 'example-advanced-inputs-tree.html',
+    goldenSha256: '432b51b529e7df23d282f1b3f9553250788877e012fba7b2c5f200a698429a9c',
   },
   {
     id: 'internal-compute-tree',
@@ -59,6 +60,7 @@ export const BASELINE_EXAMPLES: BaselineExample[] = [
     label: 'internal reference tree',
     specPath: path.join(ROOT_DIR, 'decision-trees', 'internal', 'azure-compute', 'spec.md'),
     expectedOutputName: 'internal-azure-compute-tree.html',
+    goldenSha256: '511a9cc5c5924732e56715a64a3f169eec700a0c0675821cb16d4dc869117d8d',
   },
 ];
 

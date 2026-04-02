@@ -4,6 +4,8 @@ This document collects the detailed workflow, architecture, and troubleshooting 
 
 Related references:
 
+- [ARCHITECTURE.md](../ARCHITECTURE.md)
+- [SECURITY.md](../SECURITY.md)
 - [decision-tree.rules.md](../decision-tree.rules.md)
 - [core/style-guide.md](../core/style-guide.md)
 
@@ -27,11 +29,15 @@ Notes:
 
 - Badge colors are defined in [core/badges.yml](../core/badges.yml).
 - Generator prompts live in [docs/generators](../docs/generators/).
+- Renderer reference lives in [docs/renderers.md](./renderers.md).
+- Security review material lives in [docs/security](./security/).
 
 ## Repository Structure
 
 ```text
 textforge/
+├── ARCHITECTURE.md
+├── SECURITY.md
 ├── decision-trees/
 │   ├── internal/
 │   └── public/
@@ -41,9 +47,12 @@ textforge/
 ├── docs/
 │   ├── deep-dive.md
 │   ├── generators/
+│   ├── security/
 │   └── readme/
 ├── compiler/
 ├── core/
+├── artifacts/
+│   └── editor/
 ├── dist/
 │   └── public-export/
 ├── output/
@@ -56,7 +65,9 @@ Notes:
 
 - `README.md` in the internal source repo is generated from `docs/readme/shared.md` plus `docs/readme/internal.md`.
 - The public export writes its own generated `README.md` from `docs/readme/shared.md` plus `docs/readme/public.md`.
+- The public export includes the desktop editor source under `editor/` and the release-layout note at `artifacts/editor/README.md`.
 - `dist/public-export/` is a generated release snapshot, not an authoring location.
+- `artifacts/editor/` is the repo-local staging area for desktop installers and app bundles after a release build.
 
 ## Compiler Flow
 
@@ -76,7 +87,9 @@ The compiler and parser pipeline are fully TypeScript and compile to dist/ for r
 
 Quiz output mode is a secondary example output type. See the README for the current public example command and output location.
 
-Renderer templates now live under `renderers/`, with `html/default-v1` as the default profile unless a topic or environment override selects something else.
+Renderer templates now live under `renderers/`. For new topics, the recommended path is to add a topic-level `render.json` and select `html/default-v2`. The v1 profiles remain available for backward compatibility with existing topics.
+
+For the supported renderer profiles and `render.json` examples, see [docs/renderers.md](./renderers.md).
 
 ---
 
@@ -131,7 +144,7 @@ Husky + lint-staged enforce ESLint and Prettier on staged source files. Run `npm
 ```text
 output/
 ├── example-multicloud-compute-tree.html
-├── example-quiz.html
+├── example-azure-fundamentals-quiz.html
 ├── internal-azure-compute-tree.html
 └── ...
 ```
@@ -140,7 +153,7 @@ See [decision-tree.rules.md](../decision-tree.rules.md) for the validation check
 
 ## Production Workflow
 
-1. Scaffold or edit a spec under `decision-trees/internal/` or `decision-trees/public/`
+1. Scaffold or edit a spec under `decision-trees/[scope]/`
 2. Run `npm run validate:spec`
 3. Compile one topic with `npm run compile:topic -- <scope>/<topic>` or rebuild everything with `npm run compile`
 4. Review the generated HTML under `output/` against [decision-tree.rules.md](../decision-tree.rules.md)
@@ -179,15 +192,15 @@ For a brand-new tree, the expected manual verification path is:
 
 ```bash
 npm run validate:spec
-npm run compile:topic -- internal/<topic>
+npm run compile:topic -- <scope>/<topic>
 ```
 
-Use `public/<topic>` instead of `internal/<topic>` when working on a public example tree.
+Use the appropriate `<scope>/<topic>` path for the content you are working on.
 
 `npm run export:public` is intentionally structure-first:
 
 1. It verifies the command is running from the internal source repository.
-2. It copies only an explicit public allowlist into `dist/public-export/`.
+2. It copies only an explicit public allowlist into `dist/public-export/`, including the public desktop editor source.
 3. It writes the public `README.md` directly into the export snapshot.
 4. It writes a reduced public `package.json` from an allowlist of scripts.
 5. It scans the staged export for blocked internal strings.
@@ -219,12 +232,14 @@ fail with "permission denied", run `chmod +x .husky/*` inside WSL2. Prefer WSL2 
 - DTB-005: Output write failed
 - DTB-006: Navigation or progress validation failed
 - DTB-007: Badge config missing or invalid
+- DTB-008: Render config missing, unknown, or invalid
+- DTB-010: Dead-end or unreachable navigation detected
 - DTB-999: Unknown compiler error
 
 ## Examples
 
 - [decision-trees/public/example-multicloud-compute](../decision-trees/public/example-multicloud-compute/) — public decision tree example
-- [quiz/public/example](../quiz/public/example/) — public quiz example
+- [quiz/public/example/azure-fundamentals](../quiz/public/example/azure-fundamentals/) — public quiz example
 
 ## Ownership and Support
 

@@ -231,7 +231,7 @@ END OF SPECIFICATION v1.0
 
 ### Steps to Create a New Decision Tree
 
-1. **Copy this template** to `decision-trees/internal/[topic]/spec.md`
+1. **Copy this template** to `decision-trees/[scope]/[topic]/spec.md`
 
 2. **Fill in the header:**
    - Update version, date, status
@@ -261,14 +261,14 @@ END OF SPECIFICATION v1.0
    - Platform-specific guidance
 
 7. **Create companion prompt file (optional):**
-   - Store at `docs/internal/prompts/[topic]-prompt.md`
+   - Store in a non-public notes location such as `docs/prompts/[topic]-prompt.md`
    - Not used by the compiler
    - Highlight key content elements and emphasis notes
 
 ### Naming Conventions
 
-- **Specification:** `spec.md` (inside `decision-trees/internal/[topic]/` by default)
-- **Prompt (optional):** `docs/internal/prompts/[topic]-prompt.md`
+- **Specification:** `spec.md` (inside `decision-trees/[scope]/[topic]/`)
+- **Prompt (optional):** `docs/prompts/[topic]-prompt.md` or another private notes location
 - **Question IDs:** q1, q2, q3a, q3b, etc.
 - **Result IDs:** result-[servicename] (lowercase, hyphens only, no spaces or underscores)
 

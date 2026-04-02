@@ -67,6 +67,22 @@ Cover all major ideas from the topic. Do not repeat the same concept twice.]
 
 ---
 
+## Runtime Capabilities in the Compiled Output
+
+The compiled HTML quiz includes these interactive features automatically — no spec changes required:
+
+- Progress bar and live score counter updates as the user progresses through questions
+- Per-option feedback after answering: correct option turns green with a checkmark,
+  wrong-selected option turns red with a cross, other options dim out
+- Explanation panel shown immediately on answer, with a Correct or Wrong outcome label
+- 4-tier grade on the results screen: trophy at 90%+, star at 70%+, book at 50%+, repeat below 50%
+- Missed questions list on the results screen showing question number and text
+  for every incorrect answer
+- Restart button resets all state and returns to Question 1 without a page reload
+- Mobile-optimised touch targets, no tap flash, responsive layout
+
+These are driven entirely by the spec data. No additional spec fields are required to enable them.
+
 ## Quality Rules
 
 - Study card **fronts** must be questions or single terms, never full sentences with the answer in them

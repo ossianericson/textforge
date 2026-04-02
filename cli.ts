@@ -102,7 +102,7 @@ function printHelp(): void {
     dtb validate --fix
     dtb compile --topic compute
     dtb compile --watch
-    dtb compile --mode quiz --spec quiz/public/example/spec.md --output output/example-quiz.html
+    dtb compile --mode quiz --spec quiz/public/example/azure-fundamentals/spec.md --output output/example-azure-fundamentals-quiz.html
   `);
 }
 
