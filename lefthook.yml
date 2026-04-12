@@ -1,0 +1,18 @@
+# lefthook.yml - replaces Husky + lint-staged
+
+pre-commit:
+  parallel: true
+  commands:
+    branch-guard:
+      priority: 1
+      run: node scripts/hook-branch-guard.cjs
+
+    validate-spec:
+      glob: "**/spec.md"
+      run: npm run validate:spec {staged_files}
+      fail_text: "Spec validation failed. Run: npm run validate:spec:fix"
+
+commit-msg:
+  commands:
+    conventional-commits:
+      run: node scripts/hook-commit-msg.cjs {1}

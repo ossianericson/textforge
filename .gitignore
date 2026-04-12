@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+
+# Compiled HTML output
+output/
+
+# Internal staging copies
+repo-check-stage/
+
+# Environment configuration
+.env
+.env.*
+!.env.example
+
+# Internal registry config
+.npmrc
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+
+# Local release artifacts
+textforge-editor-windows-x64-portable.zip
+editor/.pkg-cache/

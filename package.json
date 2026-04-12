@@ -1,0 +1,114 @@
+{
+  "name": "textforge",
+  "version": "1.8.1",
+  "private": false,
+  "description": "One spec. One compiler. Any interactive tool your domain expert can describe in plain text.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "dtb": "./dist/cli.js"
+  },
+  "imports": {
+    "#compiler/*": {
+      "development": "./compiler/*.ts",
+      "default": "./dist/compiler/*.js"
+    },
+    "#parsers/*": "./dist/compiler/parsers/*.js",
+    "#parser-utils/*": "./dist/compiler/parsers/utils/*.js",
+    "#config": "./dist/config.js",
+    "#logger": "./dist/logger.js"
+  },
+  "main": "dist/compiler/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/compiler/index.js",
+      "types": "./dist/compiler/index.d.ts"
+    },
+    "./validate": {
+      "import": "./dist/tools/validate-spec.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "compiler/",
+    "core/",
+    ".env.example",
+    "config.ts",
+    "decision-tree.rules.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "preinstall": "npx only-allow npm",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "prebuild": "npm run clean",
+    "prepare": "lefthook install && node -e \"const fs=require('node:fs');const cp=require('node:child_process');const cmd=fs.existsSync('dist/scripts/check-env.js')?'node dist/scripts/check-env.js':'npx tsx scripts/check-env.ts';cp.execSync(cmd,{stdio:'inherit'});\"",
+    "init": "node dist/scripts/init.js",
+    "audit:check": "npm audit --audit-level=moderate",
+    "precompile": "npm run build",
+    "compile": "node dist/scripts/compile-public.js",
+    "precompile:public": "npm run build",
+    "compile:public": "node dist/scripts/compile-public.js",
+    "precompile:topic": "npm run build",
+    "compile:topic": "node dist/compiler/index.js --topic",
+    "validate:spec": "node -e \"const fs=require('node:fs');const cp=require('node:child_process');const cmd=fs.existsSync('dist/tools/validate-spec.js')?'node dist/tools/validate-spec.js':'npx tsx tools/validate-spec.ts';cp.execSync(cmd,{stdio:'inherit'});\"",
+    "validate:spec:fix": "node -e \"const fs=require('node:fs');const cp=require('node:child_process');const cmd=fs.existsSync('dist/tools/validate-spec.js')?'node dist/tools/validate-spec.js --fix':'npx tsx tools/validate-spec.ts --fix';cp.execSync(cmd,{stdio:'inherit'});\"",
+    "precompile:watch": "npm run build",
+    "compile:watch": "node dist/tools/watch.js",
+    "pretest": "node -e \"const fs=require('node:fs');if(!fs.existsSync('dist')){console.error('Run npm run build before npm test.');process.exit(1);}\"",
+    "test": "npm run test:shared",
+    "test:shared": "cross-env NODE_ENV=test npx tsx scripts/run-shared-tests.ts",
+    "verify:corpus": "cross-env NODE_ENV=test node --test --import tsx --conditions=development \"tests/corpusCompile.test.ts\"",
+    "verify:public-examples": "cross-env NODE_ENV=test node --test --import tsx --conditions=development \"tests/public/*.test.ts\"",
+    "test:coverage": "c8 --check-coverage --lines 80 --functions 80 --branches 80 --statements 80 --reporter=text --reporter=lcov --reporter=cobertura npm test",
+    "test:full": "npm test && npm run test:coverage",
+    "build": "tsc -p tsconfig.json",
+    "typecheck:tests": "tsc -p tsconfig.tests.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,ts,json,md}\""
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
+    "dotenv": "^17.2.4",
+    "handlebars": "^4.7.9",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@evilmartians/lefthook": "^2.1.5",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "c8": "^11.0.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "git-cliff": "^2.12.0",
+    "prettier": "^3.6.2",
+    "repomix": "^1.13.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.4"
+  },
+  "overrides": {
+    "eslint": {
+      "ajv": "^6.12.6"
+    },
+    "minimatch": "^10.2.1"
+  },
+  "c8": {
+    "exclude": [
+      "dist/**"
+    ]
+  }
+}

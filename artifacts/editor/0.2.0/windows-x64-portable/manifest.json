@@ -1,0 +1,21 @@
+﻿{
+    "productName":  "textforge Editor",
+    "version":  "0.2.0",
+    "targetTriple":  "x86_64-pc-windows-msvc",
+    "sourceBundlePath":  "editor/src-tauri/target/release",
+    "generatedAt":  "2026-04-12T15:02:11.0641511Z",
+    "stagedFiles":  [
+                        "binaries/compile-parsed-spec.exe",
+                        "binaries/compile-spec.exe",
+                        "binaries/parse-spec.exe",
+                        "binaries/validate-spec.exe",
+                        "resources/binaries/compile-parsed-spec.exe",
+                        "resources/binaries/compile-spec.exe",
+                        "resources/binaries/parse-spec.exe",
+                        "resources/binaries/validate-spec.exe",
+                        "resources/core/badges.yml",
+                        "resources/renderers/html/default-v1/template.html",
+                        "resources/renderers/html/default-v2/template.html",
+                        "textforge-editor.exe"
+                    ]
+}

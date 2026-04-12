@@ -1,0 +1,114 @@
+@import './document.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --tf-bg: #09101a;
+  --tf-panel: rgba(19, 27, 40, 0.82);
+  --tf-panel-strong: rgba(14, 21, 32, 0.92);
+  --tf-border: rgba(255, 255, 255, 0.08);
+  --tf-border-strong: rgba(255, 255, 255, 0.14);
+  --tf-shadow: 0 24px 60px rgba(2, 6, 14, 0.36);
+  --tf-gold: #d7b36a;
+  --tf-focus: rgba(125, 211, 184, 0.22);
+  --tf-z-modal: 240;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(215, 179, 106, 0.14), transparent 26%),
+    radial-gradient(circle at right bottom, rgba(82, 126, 201, 0.18), transparent 30%),
+    linear-gradient(180deg, #08101a 0%, #07111b 100%);
+  color: #e2ecf5;
+  font-family: 'Aptos', 'Segoe UI Variable Text', 'Trebuchet MS', sans-serif;
+  overflow: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.react-flow__node {
+  cursor: pointer;
+}
+
+.react-flow__edge-label {
+  pointer-events: none;
+}
+
+.input-sm {
+  @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.input-sm:focus,
+.input-sm:focus-visible {
+  border-color: rgba(125, 211, 184, 0.32);
+  box-shadow: 0 0 0 4px var(--tf-focus);
+}
+
+.input-sm.error {
+  @apply border-red-500 focus:border-red-400;
+}
+
+.panel-label {
+  @apply block text-xs font-semibold text-slate-400 mb-1 mt-3;
+}
+
+.section-heading {
+  @apply text-sm font-bold text-slate-100 mb-3 pb-2 border-b border-slate-700;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.textforge-pulse-ring {
+  animation: textforge-pulse-ring 1.9s ease-in-out infinite;
+}
+
+@keyframes textforge-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(215, 179, 106, 0.22);
+  }
+
+  70% {
+    box-shadow: 0 0 0 12px rgba(215, 179, 106, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(215, 179, 106, 0);
+  }
+}

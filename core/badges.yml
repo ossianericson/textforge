@@ -1,0 +1,19 @@
+# Central badge color definitions used by the compiler.
+iaas: "#3b82f6"
+paas: "#8b5cf6"
+faas: "#ec4899"
+batch: "#06b6d4"
+
+analytics: "#06b6d4"
+database: "#10b981"
+nosql: "#a855f7"
+storage: "#ec4899"
+
+process: "#06b6d4"
+domain: "#10b981"
+support: "#f59e0b"
+
+urgent: "#f59e0b"
+standard: "#10b981"
+advanced: "#3b82f6"
+danger: "#ef4444"
