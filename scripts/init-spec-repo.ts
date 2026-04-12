@@ -75,7 +75,7 @@ function buildStarterSpec(repoName: string): string {
 
 function appendGitignore(targetDir: string): void {
   const gitignorePath = path.join(targetDir, '.gitignore');
-  const desired = ['node_modules/', 'output/', '.DS_Store'];
+  const desired = ['node_modules/', '.DS_Store'];
   const existing = fs.existsSync(gitignorePath)
     ? fs.readFileSync(gitignorePath, 'utf8').split(/\r?\n/)
     : [];

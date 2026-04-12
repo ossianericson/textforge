@@ -1,0 +1,4472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 style-src 'unsafe-inline' https://fonts.googleapis.com;
+                 font-src https://fonts.gstatic.com;
+                 script-src 'unsafe-inline';
+                 img-src 'self' data:;" />
+  <title>Multi-Cloud Compute Decision Tree</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-bg-start: #667eea;
+      --color-bg-end: #06b6d4;
+      --color-card-bg: #1e293b;
+      --color-card-border: #334155;
+      --color-text-primary: #f8fafc;
+      --color-text-secondary: #cbd5e1;
+      --color-text-muted: #94a3b8;
+      --color-link: #86d4ff;
+      --color-link-visited: #f0b4ff;
+      --color-link-hover: #b7f7ff;
+      --color-recommended: #10b981;
+      --color-warning: #f59e0b;
+      --color-advanced: #f59e0b;
+      --color-info: #3b82f6;
+      --bg-tertiary: rgba(255, 255, 255, 0.04);
+      --border-color: var(--color-card-border);
+      --text-secondary: var(--color-text-secondary);
+      --accent-primary: var(--color-recommended);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--color-text-primary);
+      background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-end));
+      min-height: 100vh;
+      padding: 32px 16px 48px;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 8px 16px;
+      z-index: 1000;
+      text-decoration: none;
+      border-radius: 0 0 4px 0;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .header p {
+      font-size: 1.125rem;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+
+    /* ── Search bar (Feature 3) ────────────────────────────── */
+
+    .search-bar {
+      margin-bottom: 20px;
+    }
+
+    .search-bar.is-collapsed .search-input-wrapper,
+    .search-bar.is-collapsed .search-results {
+      display: none;
+    }
+
+    .search-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .search-toggle {
+      font-size: 0.95rem;
+      padding: 0.5rem 0.9rem;
+    }
+
+    .search-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text-secondary);
+    }
+
+    .search-input-wrapper {
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.8rem 2.5rem 0.8rem 1rem;
+      background: var(--color-card-bg);
+      border: 2px solid var(--color-card-border);
+      border-radius: 0.5rem;
+      color: var(--color-text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--color-recommended);
+    }
+
+    .search-input:focus-visible {
+      outline: 2px solid var(--color-recommended);
+      outline-offset: 0;
+      border-color: var(--color-recommended);
+    }
+
+    .search-input::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-results {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-card-bg);
+      border: 2px solid var(--color-card-border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--color-text-primary);
+    }
+
+    .search-result-item:hover,
+    .search-result-item:focus,
+    .search-result-item:focus-visible {
+      border-color: var(--color-recommended);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(4px);
+    }
+
+    .option-btn:focus-visible,
+    button:focus-visible,
+    select:focus-visible,
+    .search-result-item:focus-visible,
+    .search-clear:focus-visible {
+      outline: 2px solid #10b981;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);
+    }
+
+    .search-result-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .search-result-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .search-result-badge {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* ── Navigation bar ────────────────────────────────────── */
+
+    .nav-bar {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .progress-container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      height: 100%;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .breadcrumb-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0 0 10px;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      padding-bottom: 4px;
+    }
+
+    @media print {
+      .nav-buttons, .search-bar, .toolbar { display: none !important; }
+      .result-card { page-break-inside: avoid; }
+      body::after {
+        content: 'Generated by textforge — ' attr(data-compiled-at);
+        display: block;
+        font-size: 10px;
+        text-align: center;
+        margin-top: 2rem;
+        color: #666;
+      }
+    }
+
+    .breadcrumb-item::after {
+      content: '→';
+      margin-left: 0.5rem;
+      color: var(--color-text-muted);
+    }
+
+    .breadcrumb-item:last-child::after {
+      content: '';
+      margin: 0;
+    }
+
+    .nav-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.6rem 1rem;
+      min-height: 44px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--color-text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .card {
+      background: var(--color-card-bg);
+      border: 1px solid var(--color-card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .question-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .question-subtitle {
+      color: var(--color-text-secondary);
+      margin: 0 0 20px;
+    }
+
+    .info-box,
+    .additional-considerations {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-box h4,
+    .additional-considerations h4 {
+      color: #3b82f6;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-btn {
+      position: relative;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid #334155;
+      border-radius: 0.5rem;
+      min-height: 48px;
+      padding: 1rem 1.5rem;
+      transition: all 0.2s ease;
+      color: var(--color-text-primary);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .option-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #10b981;
+      transform: translateX(4px);
+    }
+
+    .option-btn.recommended {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .option-btn.recommended::after {
+      content: '✓ Recommended';
+      position: absolute;
+      right: 1rem;
+      background: #10b981;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .option-btn.advanced {
+      border-color: var(--color-advanced);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .option-btn.advanced::after {
+      content: '⚠ Advanced';
+      position: absolute;
+      right: 1rem;
+      background: var(--color-advanced);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* ── Dropdown question type (Feature 1) ────────────────── */
+
+    .dropdown-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .dropdown-select {
+      flex: 1;
+      padding: 0.8rem 2.5rem 0.8rem 1rem;
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid #475569;
+      border-radius: 0.5rem;
+      color: var(--color-text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+    }
+
+    .dropdown-select:focus {
+      border-color: #10b981;
+    }
+
+    .dropdown-select.is-selected {
+      border-color: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .dropdown-select.is-selected.tier-critical {
+      border-color: #d32f2f;
+      box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
+    }
+
+    .dropdown-select.is-selected.tier-high {
+      border-color: #f57c00;
+      box-shadow: 0 0 0 2px rgba(245, 124, 0, 0.2);
+    }
+
+    .dropdown-select.is-selected.tier-medium {
+      border-color: #fbc02d;
+      box-shadow: 0 0 0 2px rgba(251, 192, 45, 0.25);
+    }
+
+    .dropdown-select.is-selected.tier-low {
+      border-color: #388e3c;
+      box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.2);
+    }
+
+    .dropdown-select option {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 0.5rem;
+    }
+
+    .dropdown-confirm {
+      flex-shrink: 0;
+      padding: 0.8rem 1.5rem;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-confirm:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: rgba(16, 185, 129, 0.3);
+    }
+
+    .dropdown-pair {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+
+    .dropdown-pair-column {
+      flex: 1 1 240px;
+      min-width: 220px;
+    }
+
+    .dropdown-pair-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      font-weight: 600;
+    }
+
+    .dropdown-pair-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.75rem;
+    }
+
+    .tier-chip {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .tier-critical {
+      background: rgba(239, 68, 68, 0.18);
+      color: #ffffff;
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+
+    .tier-high {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fef3c7;
+      border-color: rgba(245, 158, 11, 0.7);
+    }
+
+    .tier-medium {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fef9c3;
+      border-color: rgba(251, 191, 36, 0.7);
+    }
+
+    .tier-low {
+      background: rgba(34, 197, 94, 0.2);
+      color: #dcfce7;
+      border-color: rgba(34, 197, 94, 0.7);
+    }
+
+    .tier-unknown {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-text-secondary);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .tier-row {
+      grid-column: 1 / -1;
+      margin-top: 0.5rem;
+    }
+
+    .tier-emphasis {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+
+    .matrix-image {
+      margin-top: 1.75rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+    }
+
+    .matrix-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+    }
+
+    .matrix-title {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .matrix-subtitle {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      margin: 0.25rem 0 0.75rem;
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(15, 23, 42, 0.3);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+      backdrop-filter: blur(8px);
+    }
+
+    .matrix-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .matrix-table th,
+    .matrix-table td {
+      padding: 0.55rem 0.6rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: center;
+    }
+
+    .matrix-table th:first-child,
+    .matrix-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      background: rgba(255, 255, 255, 0.04);
+      min-width: 160px;
+    }
+
+    .matrix-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 30px;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      border: 2px solid transparent;
+      gap: 6px;
+    }
+
+    .matrix-cell.is-dim {
+      opacity: 0.48;
+      filter: saturate(0.85);
+    }
+
+    .matrix-cell.is-dim .matrix-label,
+    .matrix-cell.is-dim .matrix-code {
+      color: rgba(248, 250, 252, 0.75);
+    }
+
+    .matrix-cell.is-active {
+      border-color: rgba(224, 242, 254, 0.9);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.9), 0 0 18px rgba(56, 189, 248, 0.55);
+    }
+
+    .matrix-code {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.25);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .matrix-cell-critical {
+      background: #d32f2f;
+      color: #ffffff;
+    }
+
+    .matrix-cell-high {
+      background: #f57c00;
+      color: #ffffff;
+    }
+
+    .matrix-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 0.35rem;
+    }
+
+    .matrix-title {
+      margin: 0;
+    }
+
+    .matrix-subtitle {
+      text-align: center;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.6rem;
+    }
+
+    .matrix-cell-medium {
+      background: #fbc02d;
+      color: #1f2937;
+    }
+
+    .matrix-cell-low {
+      background: #388e3c;
+      color: #ffffff;
+    }
+
+    .matrix-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      align-items: center;
+      color: var(--color-text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .matrix-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .matrix-legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dropdown-ranges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .dropdown-range-hint {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 0.375rem;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
+    .dropdown-range-values {
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .dropdown-range-arrow {
+      color: #10b981;
+    }
+
+    .dropdown-range-target {
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    /* ── Result cards ──────────────────────────────────────── */
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px dashed #334155;
+    }
+
+    .service-icon {
+      font-size: 3rem;
+    }
+
+    .service-title-group h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0 0 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: white;
+    }
+
+    .badge.urgent { background: #f59e0b; }
+    .badge.standard { background: #10b981; }
+    .badge.advanced { background: #3b82f6; }
+
+    .result-section h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #10b981;
+    }
+
+    .result-section ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0 0 1.5rem;
+    }
+
+    .result-section li {
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+      position: relative;
+      color: var(--color-text-primary);
+    }
+
+    .result-section li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #10b981;
+    }
+
+    .service-block {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255, 255, 255, 0.04);
+      margin-bottom: 1.25rem;
+    }
+
+    .service-block-title {
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .ordered-list {
+      margin: 0 0 1.5rem;
+      padding-left: 1.5rem;
+      color: var(--color-text-primary);
+    }
+
+    .ordered-list li {
+      margin-bottom: 0.5rem;
+    }
+
+    .copy-block-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+      padding: 3.25rem 1rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      background: var(--bg-tertiary);
+    }
+
+    .copy-block-pre {
+      margin: 0;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font: 0.95rem/1.6 Consolas, 'Courier New', monospace;
+    }
+
+    .copy-block-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      min-height: 40px;
+      background: var(--accent-primary);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .copy-block-btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .warning-box {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid #ef4444;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .warning-box h4 {
+      color: #ef4444;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .support-section h4 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .warning-box ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .warning-box li {
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+      position: relative;
+      color: var(--color-text-primary);
+    }
+
+    .warning-box li::before {
+      content: '•';
+      color: #ef4444;
+      position: absolute;
+      left: 0;
+    }
+
+    .support-section {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-links {
+      margin-top: 0.5rem;
+    }
+
+    .result-overview {
+      margin-bottom: 1.5rem;
+      color: var(--color-text-secondary);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    .footnote {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.75rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      font-style: italic;
+      margin-bottom: 1.5rem;
+    }
+
+    .tech-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tech-tag {
+      background: rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .btn-primary {
+      background: #10b981;
+      color: white;
+      text-decoration: none;
+    }
+
+    .doc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    a {
+      color: var(--color-link);
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover,
+    a:focus {
+      color: var(--color-link-hover);
+    }
+
+    a:visited {
+      color: var(--color-link-visited);
+    }
+
+    .info-box a,
+    .additional-considerations a,
+    .support-section a {
+      color: var(--color-link);
+    }
+
+    .info-box a:visited,
+    .additional-considerations a:visited,
+    .support-section a:visited {
+      color: var(--color-link-visited);
+    }
+
+    @media (max-width: 720px) {
+      .header h1 {
+        font-size: 1.75rem;
+      }
+
+      .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .option-btn.recommended::after,
+      .option-btn.advanced::after {
+        position: static;
+        display: block;
+        margin-top: 0.5rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .dropdown-wrapper {
+        flex-direction: column;
+      }
+
+      .dropdown-select {
+        width: 100%;
+      }
+
+      .dropdown-confirm {
+        width: 100%;
+      }
+
+      .dropdown-pair {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+
+      .dropdown-pair-actions {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .option-btn {
+        padding: 0.75rem 1rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#content" class="skip-link">Skip to content</a>
+  <div class="container">
+    <header class="header">
+      <h1>Multi-Cloud Compute Decision Tree</h1>
+      <p>Find the right compute service across Azure, AWS, and GCP</p>
+    </header>
+
+    <!-- Feature 3: Search bar -->
+
+    <section class="nav-bar">
+      <div class="progress-container" role="progressbar" aria-label="Decision tree progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <nav aria-label="Decision path breadcrumb">
+        <ol class="breadcrumb-list" id="breadcrumbs" role="list"></ol>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn btn-secondary" id="back-btn">← Go Back</button>
+        <button class="btn btn-secondary" id="restart-btn">Restart</button>
+      </div>
+    </section>
+
+    <main id="content" class="card" aria-live="polite" aria-atomic="true"></main>
+  </div>
+
+  <script>
+    const questions = {
+  "q1": {
+    "title": "Which cloud provider are you deploying to?",
+    "subtitle": "Select your target platform to get provider-specific guidance.",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Microsoft Azure",
+        "next": "q2a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Amazon Web Services (AWS)",
+        "next": "q2b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Google Cloud Platform (GCP)",
+        "next": "q2c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q2a": {
+    "title": "Azure: New or Existing?",
+    "subtitle": "Are you building a new application or migrating an existing one?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "New application or service",
+        "next": "q3a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Migrating an existing application",
+        "next": "q3b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q3a": {
+    "title": "Azure: Control Requirements",
+    "subtitle": "Do you need full control over the host operating system and environment?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — full OS control required",
+        "next": "result-azure-vms",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — a managed platform is fine",
+        "next": "q4a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q4a": {
+    "title": "Azure: Architecture Pattern",
+    "subtitle": "Are you building a microservice-based or containerized architecture?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — microservices or containers",
+        "next": "q5a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — monolithic or traditional web app",
+        "next": "result-azure-appservice",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q5a": {
+    "title": "Azure: Workload Characteristics",
+    "subtitle": "Is your workload event-driven with short-lived execution bursts?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — event-driven, short-lived",
+        "next": "result-azure-functions",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — long-running services",
+        "next": "q6a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q6a": {
+    "title": "Azure: Kubernetes or Managed Container Platform?",
+    "subtitle": "Do you need the full complexity of Kubernetes, or will a simpler managed platform work?",
+    "infoBox": "<strong>Reality check:<\/strong> Most containerized workloads don&#39;t need full Kubernetes. Azure Container Apps runs on Kubernetes internally but removes cluster management entirely. Choose it unless you have a specific need for direct Kubernetes API access.",
+    "type": "buttons",
+    "options": [
+      {
+        "text": "No — simpler managed platform is fine",
+        "next": "result-azure-containerapps",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Yes — I need Kubernetes capabilities",
+        "next": "q7a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q7a": {
+    "title": "Azure: Kubernetes Management Model",
+    "subtitle": "Do you want a managed Kubernetes experience or full cluster control?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Managed — less cluster overhead",
+        "next": "result-azure-aks-managed",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Full control — I'll manage the cluster myself",
+        "next": "result-azure-aks",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q3b": {
+    "title": "Azure: Migration Strategy",
+    "subtitle": "Are you optimizing for cloud or doing a lift-and-shift migration?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Cloud-optimized — refactoring for cloud",
+        "next": "result-azure-appservice",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Lift-and-shift — minimal changes",
+        "next": "q4b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q4b": {
+    "title": "Azure: Containerization",
+    "subtitle": "Can the existing application be containerized?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — it can be containerized",
+        "next": "q6a",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — cannot be containerized",
+        "next": "result-azure-vms",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q2b": {
+    "title": "AWS: New or Existing?",
+    "subtitle": "Are you building a new application or migrating an existing one?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "New application or service",
+        "next": "q3c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Migrating an existing application",
+        "next": "q3d",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q3c": {
+    "title": "AWS: Control Requirements",
+    "subtitle": "Do you need full control over the host operating system and environment?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — full OS control required",
+        "next": "result-aws-ec2",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — a managed platform is fine",
+        "next": "q4c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q4c": {
+    "title": "AWS: Architecture Pattern",
+    "subtitle": "Are you building a microservice-based or containerized architecture?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — microservices or containers",
+        "next": "q5b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — monolithic or traditional web app",
+        "next": "result-aws-beanstalk",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q5b": {
+    "title": "AWS: Workload Characteristics",
+    "subtitle": "Is your workload event-driven with short-lived execution bursts?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — event-driven, short-lived",
+        "next": "result-aws-lambda",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — long-running services",
+        "next": "q6b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q6b": {
+    "title": "AWS: Kubernetes or Managed Container Platform?",
+    "subtitle": "Do you need full Kubernetes, or will a managed container service work?",
+    "infoBox": "<strong>Consider Fargate first:<\/strong> AWS Fargate on ECS runs containers without managing servers or clusters. It covers the majority of containerized workloads without Kubernetes complexity. Choose EKS only when you have a specific reason to need Kubernetes.",
+    "type": "buttons",
+    "options": [
+      {
+        "text": "No — managed containers without Kubernetes",
+        "next": "result-aws-fargate",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Yes — I need Kubernetes capabilities",
+        "next": "q7b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q7b": {
+    "title": "AWS: Kubernetes Management Model",
+    "subtitle": "Do you want managed nodes or full cluster control?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Managed — use Fargate or managed node groups on EKS",
+        "next": "result-aws-eks-managed",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Full control — self-managed nodes",
+        "next": "result-aws-eks",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q3d": {
+    "title": "AWS: Migration Strategy",
+    "subtitle": "Are you optimizing for cloud or doing a lift-and-shift migration?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Cloud-optimized — refactoring for cloud",
+        "next": "result-aws-beanstalk",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Lift-and-shift — minimal changes",
+        "next": "q4d",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q4d": {
+    "title": "AWS: Containerization",
+    "subtitle": "Can the existing application be containerized?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — it can be containerized",
+        "next": "q6b",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — cannot be containerized",
+        "next": "result-aws-ec2",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q2c": {
+    "title": "GCP: New or Existing?",
+    "subtitle": "Are you building a new application or migrating an existing one?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "New application or service",
+        "next": "q3e",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Migrating an existing application",
+        "next": "q3f",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q3e": {
+    "title": "GCP: Control Requirements",
+    "subtitle": "Do you need full control over the host operating system and environment?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — full OS control required",
+        "next": "result-gcp-compute",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — a managed platform is fine",
+        "next": "q4e",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q4e": {
+    "title": "GCP: Architecture Pattern",
+    "subtitle": "Are you building a microservice-based or containerized architecture?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — microservices or containers",
+        "next": "q5c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — monolithic or traditional web app",
+        "next": "result-gcp-appengine",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q5c": {
+    "title": "GCP: Workload Characteristics",
+    "subtitle": "Is your workload event-driven with short-lived execution bursts?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — event-driven, short-lived",
+        "next": "result-gcp-functions",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — long-running services",
+        "next": "q6c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q6c": {
+    "title": "GCP: Kubernetes or Managed Container Platform?",
+    "subtitle": "Do you need full Kubernetes, or will a serverless container platform work?",
+    "infoBox": "<strong>Cloud Run first:<\/strong> Google Cloud Run is fully managed and runs any containerized workload without cluster management. It scales to zero and handles HTTP workloads with no infrastructure overhead. Choose GKE only when you have Kubernetes-specific requirements.",
+    "type": "buttons",
+    "options": [
+      {
+        "text": "No — serverless containers without Kubernetes",
+        "next": "result-gcp-cloudrun",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Yes — I need Kubernetes capabilities",
+        "next": "q7c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q7c": {
+    "title": "GCP: Kubernetes Management Model",
+    "subtitle": "Do you want a fully managed Kubernetes experience or standard cluster control?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Managed — GKE Autopilot (Google manages nodes)",
+        "next": "result-gcp-gke-autopilot",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Standard — I manage nodes and configuration",
+        "next": "result-gcp-gke",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q3f": {
+    "title": "GCP: Migration Strategy",
+    "subtitle": "Are you optimizing for cloud or doing a lift-and-shift migration?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Cloud-optimized — refactoring for cloud",
+        "next": "result-gcp-appengine",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "Lift-and-shift — minimal changes",
+        "next": "q4f",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  },
+  "q4f": {
+    "title": "GCP: Containerization",
+    "subtitle": "Can the existing application be containerized?",
+    "infoBox": null,
+    "type": "buttons",
+    "options": [
+      {
+        "text": "Yes — it can be containerized",
+        "next": "q6c",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "No — cannot be containerized",
+        "next": "result-gcp-compute",
+        "recommended": false,
+        "advanced": false
+      },
+      {
+        "text": "I don't know / need guidance",
+        "next": "result-guidance",
+        "recommended": false,
+        "advanced": false
+      }
+    ]
+  }
+};
+
+    const results = {
+  "result-azure-vms": {
+    "title": "Use Azure Virtual Machines",
+    "breadcrumb": "",
+    "icon": "🖥️",
+    "badge": {
+      "text": "IaaS",
+      "className": "advanced"
+    },
+    "techTags": [
+      "Virtual Machines",
+      "IaaS",
+      "Windows",
+      "Linux",
+      "Lift-and-shift"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Azure Virtual Machines Documentation",
+        "url": "https://learn.microsoft.com/azure/virtual-machines/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review landing zone readiness, monitoring standards, and backup requirements. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> guest operating system choices, workload configuration, backup posture, and capacity planning <strong>Cloud provider manages:<\/strong> physical infrastructure availability, core virtualization platform, and service lifecycle maintenance",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Applications requiring full OS-level control and customization",
+          "Legacy applications that cannot be containerized",
+          "Workloads with specific kernel requirements or drivers",
+          "Strict compliance scenarios requiring host-level isolation",
+          "Lift-and-shift migrations with minimal refactoring"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Complete control over operating system, runtime, and environment",
+          "Wide range of VM sizes optimized for compute, memory, and storage",
+          "Support for Windows and Linux workloads",
+          "Flexible networking and security configurations",
+          "Persistent storage with Azure Managed Disks"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate regional availability, quotas, and pricing for the selected VM family",
+          "Confirm network connectivity, identity integration, and compliance constraints"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Modern cloud-native applications that can use PaaS",
+          "Stateless web applications or APIs — use App Service or Container Apps",
+          "Containerized microservices — use Container Apps",
+          "When you want minimal operational overhead"
+        ]
+      }
+    ]
+  },
+  "result-azure-appservice": {
+    "title": "Use Azure App Service",
+    "breadcrumb": "",
+    "icon": "🌐",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      ".NET",
+      "Java",
+      "Node.js",
+      "Python",
+      "PaaS",
+      "CI/CD"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Azure App Service Documentation",
+        "url": "https://learn.microsoft.com/azure/app-service/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align logging, monitoring, and alerting with platform standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> application code, service configuration, deployment workflow, and scaling rules <strong>Cloud provider manages:<\/strong> platform runtime, host patching, managed certificates/features, and core service availability",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Web applications and RESTful APIs",
+          "Mobile app backends",
+          "Cloud-optimized applications in .NET, Java, Node.js, Python, PHP, or Ruby",
+          "Teams wanting minimal infrastructure management"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Fully managed platform with automatic OS and framework patching",
+          "Built-in CI/CD integration with GitHub Actions and Azure DevOps",
+          "Auto-scaling based on demand",
+          "Deployment slots for staging and blue-green deployments",
+          "Custom domains and managed TLS certificates"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Verify runtime version support and regional feature availability",
+          "Confirm identity, networking, and compliance requirements for the app"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Containerized microservices — use Container Apps",
+          "Applications requiring OS-level customization — use VMs",
+          "Event-driven short-lived workloads — use Azure Functions",
+          "Multi-container applications needing orchestration"
+        ]
+      }
+    ]
+  },
+  "result-azure-containerapps": {
+    "title": "Deploy Azure Container Apps",
+    "breadcrumb": "",
+    "icon": "📦",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Containers",
+      "Microservices",
+      "KEDA",
+      "Dapr",
+      "PaaS",
+      "Docker"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Deploy Azure Container Apps Documentation",
+        "url": "https://learn.microsoft.com/azure/container-apps/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review landing zone, network integration, and container registry policies. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> container images, revisions, ingress settings, secrets, and autoscaling behavior <strong>Cloud provider manages:<\/strong> container execution platform, control plane operations, and managed scaling infrastructure",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Containerized microservices without Kubernetes operational complexity",
+          "HTTP APIs and background workers in containers",
+          "Teams wanting container portability without cluster management",
+          "Applications requiring scale-to-zero cost optimization"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Fully managed Kubernetes-based platform — no cluster to operate",
+          "Scale to zero on idle workloads — pay only when running",
+          "Built-in support for KEDA event-driven autoscaling and Dapr",
+          "Traffic splitting for blue-green and canary deployments",
+          "Supports any OCI-compliant container image"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate Dapr/KEDA requirements and supported scaling triggers",
+          "Confirm network ingress, identity, and compliance constraints"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Direct Kubernetes API access or custom operators required — use AKS",
+          "Specialized Kubernetes networking or privileged containers needed",
+          "Full cluster-level customization required"
+        ]
+      }
+    ]
+  },
+  "result-azure-aks-managed": {
+    "title": "Use Azure Kubernetes Service — Managed",
+    "breadcrumb": "",
+    "icon": "☁️",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Kubernetes",
+      "AKS",
+      "GitOps",
+      "Containers",
+      "DevOps"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Azure Kubernetes Service — Managed Documentation",
+        "url": "https://learn.microsoft.com/azure/aks/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align with cluster governance, logging, and monitoring standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> workloads, namespaces, RBAC policy, release process, and day-2 operations inside the cluster <strong>Cloud provider manages:<\/strong> managed control plane availability, integrated platform services, and baseline cluster lifecycle automation",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Teams needing Kubernetes with reduced cluster operational burden",
+          "Applications requiring GitOps workflows or standard K8s tooling",
+          "Workloads that outgrow Container Apps but don&#39;t need full cluster ownership",
+          "Organizations with shared cluster governance and ownership"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Managed control plane — Microsoft handles Kubernetes API server",
+          "Automatic node upgrades and security patching options",
+          "Azure AD integration and workload identity built in",
+          "Integration with Azure Monitor and Prometheus for observability",
+          "Supports cluster autoscaler and node pool management"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Ensure Kubernetes platform ownership and on-call model are defined",
+          "Validate networking, identity, and policy constraints before provisioning"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Container Apps meets your needs — significantly less complexity",
+          "You need custom CNI, privileged daemonsets, or unsupported operators — use self-managed AKS",
+          "No Kubernetes expertise in the team"
+        ]
+      }
+    ]
+  },
+  "result-azure-aks": {
+    "title": "Deploy Azure Kubernetes Service — Self-Managed",
+    "breadcrumb": "",
+    "icon": "⚙️",
+    "badge": {
+      "text": "PaaS",
+      "className": "advanced"
+    },
+    "techTags": [
+      "Kubernetes",
+      "Microservices",
+      "Custom Operators",
+      "Service Mesh"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Deploy Azure Kubernetes Service — Self-Managed Documentation",
+        "url": "https://learn.microsoft.com/azure/aks/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review cluster lifecycle, upgrade cadence, and platform guardrails. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> cluster design, node strategy, upgrades, policy enforcement, workload operations, and security hardening <strong>Cloud provider manages:<\/strong> underlying managed service primitives, regional infrastructure, and core control plane service components",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Complex workloads requiring full Kubernetes API access and custom operators",
+          "Organizations with dedicated Kubernetes operations capability",
+          "Workloads needing custom CNI plugins or advanced service mesh configurations",
+          "Scenarios where managed solutions do not meet specific requirements"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Full control over cluster configuration, networking, and Kubernetes version",
+          "Access to complete Kubernetes API and entire ecosystem",
+          "Support for custom operators, CRDs, and advanced features",
+          "Flexibility to implement any networking or service mesh model"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Ensure dedicated Kubernetes operations capacity and security hardening",
+          "Validate custom networking and policy requirements early"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Standard microservices or web APIs — use Container Apps",
+          "Teams without dedicated Kubernetes expertise",
+          "When faster time-to-market is critical"
+        ]
+      }
+    ]
+  },
+  "result-azure-functions": {
+    "title": "Use Azure Functions",
+    "breadcrumb": "",
+    "icon": "⚡",
+    "badge": {
+      "text": "FaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Serverless",
+      "Event-driven",
+      ".NET",
+      "JavaScript",
+      "Python",
+      "FaaS"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Azure Functions Documentation",
+        "url": "https://learn.microsoft.com/azure/azure-functions/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align logging, tracing, and alerting with platform standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> function code, bindings, trigger design, retries, and operational telemetry <strong>Cloud provider manages:<\/strong> execution environment, elastic scaling, and managed runtime infrastructure",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Event-driven workloads triggered by HTTP, queues, timers, or storage events",
+          "Serverless APIs and webhooks",
+          "Data processing and ETL jobs",
+          "Scheduled automation tasks",
+          "Sporadic or unpredictable traffic patterns"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "True serverless — consumption-based pricing, pay only when running",
+          "Scales automatically from zero to thousands of instances",
+          "Rich trigger and binding ecosystem for Azure services",
+          "Supports .NET, Java, JavaScript, Python, and PowerShell",
+          "Integrated monitoring via Application Insights"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate timeout limits, cold start impact, and trigger suitability",
+          "Confirm identity, network access, and compliance requirements"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Long-running processes exceeding timeout limits (default 5–10 min)",
+          "Stateful microservices — use Container Apps",
+          "Workloads where cold start latency is unacceptable",
+          "Applications requiring persistent connections"
+        ]
+      }
+    ]
+  },
+  "result-aws-ec2": {
+    "title": "Use Amazon EC2",
+    "breadcrumb": "",
+    "icon": "🖥️",
+    "badge": {
+      "text": "IaaS",
+      "className": "advanced"
+    },
+    "techTags": [
+      "EC2",
+      "IaaS",
+      "Windows",
+      "Linux",
+      "Lift-and-shift",
+      "GPU"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Amazon EC2 Documentation",
+        "url": "https://docs.aws.amazon.com/ec2/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review landing zone readiness, monitoring standards, and backup requirements. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> guest operating system choices, workload configuration, backup posture, and capacity planning <strong>Cloud provider manages:<\/strong> physical infrastructure availability, core virtualization platform, and service lifecycle maintenance",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Applications requiring full OS control and custom configurations",
+          "Legacy applications that cannot be containerized",
+          "Workloads with specific hardware requirements (GPU, high memory)",
+          "Lift-and-shift migrations with minimal refactoring",
+          "Custom software stacks and licensing requirements"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Widest instance type selection of any cloud provider",
+          "Complete control over OS, kernel, and runtime",
+          "Flexible pricing: On-Demand, Reserved, Spot, and Savings Plans",
+          "Deep VPC networking integration",
+          "Support for Windows, Linux, and macOS workloads"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate instance family availability, quotas, and pricing in target regions",
+          "Confirm networking, identity, and compliance constraints"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Modern cloud-native applications that suit PaaS services",
+          "Containerized workloads — use Fargate or EKS",
+          "Event-driven workloads — use Lambda",
+          "When minimal operational overhead is a priority"
+        ]
+      }
+    ]
+  },
+  "result-aws-beanstalk": {
+    "title": "Use AWS Elastic Beanstalk",
+    "breadcrumb": "",
+    "icon": "🌐",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Java",
+      ".NET",
+      "Node.js",
+      "Python",
+      "PaaS",
+      "CI/CD"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use AWS Elastic Beanstalk Documentation",
+        "url": "https://docs.aws.amazon.com/elasticbeanstalk/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align logging, monitoring, and alerting with platform standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> application code, environment configuration, release workflow, and scaling expectations <strong>Cloud provider manages:<\/strong> managed platform lifecycle, host patching, and supporting platform integrations",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Web applications and APIs in standard runtimes",
+          "Teams wanting PaaS simplicity without leaving AWS",
+          "Applications in Java, .NET, Node.js, PHP, Python, Ruby, or Go",
+          "Rapid deployment with minimal infrastructure decisions"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Fully managed platform with automatic capacity provisioning and load balancing",
+          "Rolling deployments and blue-green deployment support",
+          "Auto-scaling and health monitoring included",
+          "Retain full access to underlying EC2 resources if needed",
+          "Free to use — you only pay for the underlying AWS resources"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Verify runtime support, platform updates, and regional feature availability",
+          "Confirm identity, networking, and compliance requirements"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Containerized microservices — use Fargate on ECS",
+          "Event-driven workloads — use Lambda",
+          "Applications requiring OS-level customization — use EC2",
+          "Very large scale or complex multi-service architectures"
+        ]
+      }
+    ]
+  },
+  "result-aws-fargate": {
+    "title": "Deploy AWS Fargate on ECS",
+    "breadcrumb": "",
+    "icon": "📦",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Containers",
+      "Microservices",
+      "ECS",
+      "Fargate",
+      "PaaS",
+      "Docker"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Deploy AWS Fargate on ECS Documentation",
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review landing zone, network integration, and container registry policies. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> container images, task definitions, service configuration, secrets, and autoscaling policy <strong>Cloud provider manages:<\/strong> serverless container capacity, orchestrator infrastructure, and managed execution environment",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Containerized applications without cluster or server management",
+          "Microservices and background workers in containers",
+          "Teams wanting container portability without Kubernetes complexity",
+          "Variable workloads benefiting from per-task billing"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Serverless containers — no EC2 instances to manage or patch",
+          "Per-task CPU and memory billing — no idle capacity costs",
+          "Deep integration with AWS services (ALB, CloudWatch, IAM, Secrets Manager)",
+          "Built-in security with task-level IAM roles",
+          "Works with both ECS and EKS as the compute engine"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate task sizing, scaling policies, and service limits",
+          "Confirm network ingress, identity, and compliance constraints"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Direct Kubernetes API access required — use EKS",
+          "Workloads needing GPU instances or Windows containers at scale",
+          "Very high throughput workloads where EC2 Reserved pricing is more cost-effective"
+        ]
+      }
+    ]
+  },
+  "result-aws-eks-managed": {
+    "title": "Use Amazon EKS — Managed Node Groups",
+    "breadcrumb": "",
+    "icon": "☁️",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Kubernetes",
+      "EKS",
+      "GitOps",
+      "Containers",
+      "Managed Nodes"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Amazon EKS — Managed Node Groups Documentation",
+        "url": "https://docs.aws.amazon.com/eks/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align with cluster governance, logging, and monitoring standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> workloads, namespaces, IAM integration, release process, and day-2 operations inside the cluster <strong>Cloud provider manages:<\/strong> managed control plane availability, native service integrations, and baseline cluster lifecycle automation",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Teams needing Kubernetes with reduced node operational burden",
+          "Workloads requiring Kubernetes-native tooling and ecosystem",
+          "Organizations standardizing on Kubernetes across providers",
+          "Applications using Helm charts, custom operators, or Kubernetes APIs"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Managed control plane — AWS manages Kubernetes API server and etcd",
+          "Managed node groups handle AMI updates and node lifecycle",
+          "Native AWS integrations: VPC CNI, ALB Ingress, IAM roles for service accounts",
+          "Supports Fargate profiles for serverless pods alongside EC2 nodes",
+          "Access to full Kubernetes API and CNCF ecosystem"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Ensure Kubernetes platform ownership and on-call model are defined",
+          "Validate networking, identity, and policy constraints before provisioning"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Fargate on ECS meets your needs — simpler and no Kubernetes knowledge required",
+          "Custom CNI or unsupported node configurations needed — use self-managed EKS",
+          "No Kubernetes expertise in the team"
+        ]
+      }
+    ]
+  },
+  "result-aws-eks": {
+    "title": "Deploy Amazon EKS — Self-Managed",
+    "breadcrumb": "",
+    "icon": "⚙️",
+    "badge": {
+      "text": "PaaS",
+      "className": "advanced"
+    },
+    "techTags": [
+      "Kubernetes",
+      "EKS",
+      "Self-Managed",
+      "GPU",
+      "Custom CNI"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Deploy Amazon EKS — Self-Managed Documentation",
+        "url": "https://docs.aws.amazon.com/eks/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review cluster lifecycle, upgrade cadence, and platform guardrails. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> node strategy, AMIs, upgrades, policy enforcement, workload operations, and security hardening <strong>Cloud provider manages:<\/strong> regional infrastructure, managed service primitives, and core control plane service components",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Workloads requiring custom AMIs, kernel tuning, or non-standard node configurations",
+          "GPU clusters or specialized hardware instance types",
+          "Organizations with Kubernetes operations capability",
+          "Scenarios requiring custom networking (non-VPC CNI) or privileged containers"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Full control over node lifecycle, AMI, and Kubernetes configuration",
+          "Ability to run any instance type including spot, GPU, and bare metal",
+          "Maximum flexibility for custom CNI plugins and advanced networking",
+          "Control over Kubernetes version upgrade timing"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Ensure dedicated Kubernetes operations capacity and security hardening",
+          "Validate custom networking and policy requirements early"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Standard containerized services — use Fargate or managed node groups",
+          "Teams without Kubernetes operational expertise",
+          "When time-to-market is critical"
+        ]
+      }
+    ]
+  },
+  "result-aws-lambda": {
+    "title": "Use AWS Lambda",
+    "breadcrumb": "",
+    "icon": "⚡",
+    "badge": {
+      "text": "FaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Serverless",
+      "Event-driven",
+      "Lambda",
+      "FaaS",
+      "Python",
+      "Node.js"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use AWS Lambda Documentation",
+        "url": "https://docs.aws.amazon.com/lambda/"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align logging, tracing, and alerting with platform standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> function code, event source design, concurrency behavior, and operational telemetry <strong>Cloud provider manages:<\/strong> execution environment, runtime scaling, and managed service availability",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Event-driven workloads triggered by API Gateway, S3, SQS, SNS, or DynamoDB streams",
+          "Serverless APIs and microservices",
+          "Data transformation and real-time stream processing",
+          "Scheduled tasks and automation",
+          "Workloads with highly variable or unpredictable traffic"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "True serverless — no infrastructure to manage",
+          "Automatic scaling from zero to tens of thousands of concurrent executions",
+          "Per-millisecond billing — no idle costs",
+          "Deep integration with all AWS event sources",
+          "Supports Node.js, Python, Java, .NET, Go, Ruby, and custom runtimes"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate timeout limits, cold start impact, and event source suitability",
+          "Confirm identity, network access, and compliance requirements"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Long-running processes (maximum 15 minutes)",
+          "Stateful applications requiring persistent connections",
+          "Workloads where cold start latency is unacceptable",
+          "Applications needing more than 10 GB memory or 6 vCPUs"
+        ]
+      }
+    ]
+  },
+  "result-gcp-compute": {
+    "title": "Use Google Compute Engine",
+    "breadcrumb": "",
+    "icon": "🖥️",
+    "badge": {
+      "text": "IaaS",
+      "className": "advanced"
+    },
+    "techTags": [
+      "Compute Engine",
+      "IaaS",
+      "Linux",
+      "Windows",
+      "GPU",
+      "Lift-and-shift"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Google Compute Engine Documentation",
+        "url": "https://cloud.google.com/compute/docs"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review landing zone readiness, monitoring standards, and backup requirements. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> guest operating system choices, workload configuration, backup posture, and capacity planning <strong>Cloud provider manages:<\/strong> physical infrastructure availability, core virtualization platform, and service lifecycle maintenance",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Applications requiring full OS control and custom environments",
+          "Legacy applications that cannot be containerized",
+          "High-performance computing, GPU, and specialized workloads",
+          "Lift-and-shift migrations from on-premises",
+          "Custom software stacks or licensing requirements"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Widest machine type selection including custom machine types",
+          "Per-second billing with committed use discounts",
+          "Live migration for maintenance with no downtime",
+          "Deep VPC and networking integration",
+          "Preemptible and Spot VMs for cost optimization"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate machine family availability, quotas, and pricing in target regions",
+          "Confirm networking, identity, and compliance constraints"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Cloud-native applications suited to PaaS services",
+          "Containerized workloads — use Cloud Run or GKE",
+          "Event-driven workloads — use Cloud Functions",
+          "When minimal operational overhead is a priority"
+        ]
+      }
+    ]
+  },
+  "result-gcp-functions": {
+    "title": "Use Google Cloud Functions",
+    "breadcrumb": "",
+    "icon": "⚡",
+    "badge": {
+      "text": "FaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Serverless",
+      "Event-driven",
+      "Cloud Functions",
+      "FaaS",
+      "Python",
+      "Node.js"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Google Cloud Functions Documentation",
+        "url": "https://cloud.google.com/functions/docs"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align logging, tracing, and alerting with platform standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> function code, triggers, configuration, retries, and operational telemetry <strong>Cloud provider manages:<\/strong> execution environment, runtime scaling, and managed service availability",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Event-driven workloads triggered by HTTP, Pub/Sub, Cloud Storage, or Firestore events",
+          "Serverless APIs, webhooks, and lightweight integrations",
+          "Data transformation, ETL pipelines, and real-time stream processing",
+          "Scheduled automation tasks via Cloud Scheduler",
+          "Sporadic or unpredictable traffic patterns"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "True serverless — no infrastructure to manage",
+          "Automatic scaling from zero to thousands of instances",
+          "Per-100ms billing — no idle costs",
+          "Deep integration with Google Cloud events and Pub/Sub",
+          "Supports Node.js, Python, Go, Java, .NET, Ruby, and PHP",
+          "Cloud Functions 2nd gen built on Cloud Run — longer timeouts, larger instances"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate timeout limits, cold start impact, and event source suitability",
+          "Confirm identity, network access, and compliance requirements"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Long-running processes exceeding timeout limits (1st gen: 9 min, 2nd gen: 60 min)",
+          "Stateful microservices requiring persistent connections — use Cloud Run",
+          "Workloads where cold start latency is unacceptable",
+          "Complex multi-step orchestration — consider Cloud Run or GKE"
+        ]
+      }
+    ]
+  },
+  "result-gcp-appengine": {
+    "title": "Use Google App Engine",
+    "breadcrumb": "",
+    "icon": "🌐",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "App Engine",
+      "PaaS",
+      "Node.js",
+      "Python",
+      "Java",
+      "Go"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use Google App Engine Documentation",
+        "url": "https://cloud.google.com/appengine/docs"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align logging, monitoring, and alerting with platform standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> application code, service configuration, deployment workflow, and scaling expectations <strong>Cloud provider manages:<\/strong> managed platform lifecycle, host patching, and supporting platform integrations",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Web applications and HTTP APIs in standard runtimes",
+          "Teams wanting fully managed infrastructure with minimal configuration",
+          "Applications in Node.js, Python, Java, Go, PHP, or Ruby",
+          "Workloads benefiting from automatic scaling and traffic splitting"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Fully managed — no servers, no containers to manage",
+          "Automatic scaling based on traffic with scale-to-zero in Standard environment",
+          "Built-in versioning and traffic splitting for A/B testing",
+          "Integrated with Cloud Monitoring, Logging, and Error Reporting",
+          "Standard environment for fast cold starts; Flexible environment for custom runtimes"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Verify runtime support, scaling model, and regional feature availability",
+          "Confirm identity, networking, and compliance requirements"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Containerized microservices — use Cloud Run",
+          "Event-driven workloads — use Cloud Functions",
+          "Applications requiring OS customization — use Compute Engine",
+          "Workloads needing fine-grained container control"
+        ]
+      }
+    ]
+  },
+  "result-gcp-cloudrun": {
+    "title": "Deploy Google Cloud Run",
+    "breadcrumb": "",
+    "icon": "📦",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Containers",
+      "Cloud Run",
+      "PaaS",
+      "Docker",
+      "Microservices",
+      "Serverless"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Deploy Google Cloud Run Documentation",
+        "url": "https://cloud.google.com/run/docs"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review landing zone, network integration, and container registry policies. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> container images, service revisions, ingress settings, secrets, and autoscaling behavior <strong>Cloud provider manages:<\/strong> container execution platform, control plane operations, and managed scaling infrastructure",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Containerized HTTP services without infrastructure management",
+          "Microservices and APIs in containers",
+          "Teams wanting container portability without Kubernetes overhead",
+          "Variable workloads — scale to zero when idle"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Fully managed — deploy any container, no cluster to operate",
+          "Scale to zero — pay only when requests are being handled",
+          "Request-based and CPU-always-on billing models",
+          "Supports gRPC, HTTP/2, and WebSockets",
+          "Integrated with Cloud Build for CI/CD and Artifact Registry for images",
+          "Cloud Run Jobs for batch and scheduled workloads"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Validate request timeout limits and non-HTTP workload fit",
+          "Confirm network ingress, identity, and compliance constraints"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Kubernetes-specific features required — use GKE",
+          "Non-HTTP workloads needing full orchestration — use GKE",
+          "Very long-running processes exceeding timeout limits"
+        ]
+      }
+    ]
+  },
+  "result-gcp-gke-autopilot": {
+    "title": "Use GKE Autopilot",
+    "breadcrumb": "",
+    "icon": "☁️",
+    "badge": {
+      "text": "PaaS",
+      "className": "standard"
+    },
+    "techTags": [
+      "Kubernetes",
+      "GKE",
+      "Autopilot",
+      "GitOps",
+      "Containers"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Use GKE Autopilot Documentation",
+        "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Align with cluster governance, logging, and monitoring standards. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> workloads, namespaces, policy controls, release process, and day-2 operations inside the cluster <strong>Cloud provider manages:<\/strong> managed node infrastructure, platform hardening defaults, and baseline cluster lifecycle automation",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Teams needing Kubernetes with minimal node management",
+          "Workloads requiring Kubernetes-native tooling without cluster operations",
+          "Organizations standardizing on Kubernetes across providers",
+          "Applications using Helm, Kubernetes APIs, or custom operators"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Google manages nodes, node pools, and cluster infrastructure",
+          "Pay only for pod resource requests — no idle node costs",
+          "Automatic security hardening and compliance with CIS benchmarks",
+          "Full Kubernetes API compatibility with standard tooling",
+          "Automatic node scaling, upgrades, and repair"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Ensure Kubernetes platform ownership and on-call model are defined",
+          "Validate networking, identity, and policy constraints before provisioning"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "Cloud Run meets your needs — significantly simpler",
+          "Privileged containers or custom node configurations required — use GKE Standard",
+          "No Kubernetes expertise in the team"
+        ]
+      }
+    ]
+  },
+  "result-gcp-gke": {
+    "title": "Deploy GKE Standard",
+    "breadcrumb": "",
+    "icon": "⚙️",
+    "badge": {
+      "text": "PaaS",
+      "className": "advanced"
+    },
+    "techTags": [
+      "Kubernetes",
+      "GKE",
+      "Standard",
+      "GPU",
+      "TPU",
+      "Custom CNI"
+    ],
+    "searchTags": [],
+    "docs": [
+      {
+        "label": "Deploy GKE Standard Documentation",
+        "url": "https://cloud.google.com/kubernetes-engine/docs"
+      }
+    ],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Review cluster lifecycle, upgrade cadence, and platform guardrails. Confirm operational ownership, support model, and escalation path. Responsibility Model: <strong>You manage:<\/strong> node pools, upgrades, policy enforcement, workload operations, and security hardening <strong>Cloud provider manages:<\/strong> regional infrastructure, managed Kubernetes service primitives, and control plane availability",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Workloads requiring custom node images, GPU instances, or specialized hardware",
+          "Applications needing privileged containers or custom kernel parameters",
+          "Organizations with dedicated Kubernetes platform engineering teams",
+          "Advanced networking requirements with custom CNI plugins"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Full control over node pool configuration, machine types, and autoscaling",
+          "Support for GPU and TPU node pools for ML workloads",
+          "Advanced networking with Alias IPs, VPC-native clusters, and custom CNI",
+          "Access to node-level debugging and custom daemonsets"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "Ensure dedicated Kubernetes operations capacity and security hardening",
+          "Validate custom networking and policy requirements early"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "GKE Autopilot or Cloud Run meets your needs",
+          "Teams without Kubernetes operations expertise",
+          "Standard containerized HTTP services"
+        ]
+      }
+    ]
+  },
+  "result-guidance": {
+    "title": "Get Help Choosing Your Cloud and Compute Service",
+    "breadcrumb": "",
+    "icon": "🧭",
+    "badge": {
+      "text": "Standard",
+      "className": "urgent"
+    },
+    "techTags": [
+      "Guidance",
+      "Multi-cloud",
+      "Architecture",
+      "Discovery"
+    ],
+    "searchTags": [],
+    "docs": [],
+    "contact": [
+      "contact@example.com"
+    ],
+    "additionalConsiderations": "Confirm stakeholder availability and decision timelines before engagement. Bring existing diagrams, constraints, and cost assumptions to speed evaluation. Responsibility Model: <strong>You manage:<\/strong> gathering missing constraints, confirming business priorities, and identifying the decision owner <strong>Platform owner manages:<\/strong> review guidance, escalation routing, and help with the next evaluation step",
+    "overview": "Use this path if you are unsure which cloud provider or compute service fits your workload. Getting the compute decision right early prevents costly migrations later.",
+    "responsibilityLinks": [],
+    "sections": [
+      {
+        "type": "list",
+        "title": "Best For",
+        "items": [
+          "Teams early in cloud adoption or evaluating providers for the first time",
+          "Workloads with unclear ownership, compliance constraints, or multi-cloud requirements",
+          "Organizations without an established cloud strategy or governance model"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Key Benefits",
+        "items": [
+          "Alignment on provider strengths before committing",
+          "Avoids lock-in decisions made without full context",
+          "Surfaces compliance, data residency, and cost factors early"
+        ]
+      },
+      {
+        "type": "list",
+        "title": "Considerations",
+        "items": [
+          "What does the workload do — web, batch, event-driven, ML?",
+          "Are there data residency or compliance requirements?",
+          "Is there an existing cloud provider relationship or agreement?",
+          "What is the team&#39;s existing operational expertise?"
+        ]
+      },
+      {
+        "type": "warning",
+        "title": "When NOT to use",
+        "items": [
+          "You already have a cloud provider mandate or agreement",
+          "A current service owner has provided an approved architecture blueprint"
+        ]
+      }
+    ]
+  }
+};
+
+    const progressSteps = {
+  "q1": 0,
+  "q2a": 16,
+  "q3a": 32,
+  "q4a": 48,
+  "q5a": 64,
+  "q6a": 80,
+  "q7a": 80,
+  "q3b": 32,
+  "q4b": 48,
+  "q2b": 16,
+  "q3c": 32,
+  "q4c": 48,
+  "q5b": 64,
+  "q6b": 80,
+  "q7b": 80,
+  "q3d": 32,
+  "q4d": 48,
+  "q2c": 16,
+  "q3e": 32,
+  "q4e": 48,
+  "q5c": 64,
+  "q6c": 80,
+  "q7c": 80,
+  "q3f": 32,
+  "q4f": 48,
+  "result": 100
+};
+
+    const renderOptions = {
+  "showDocsSection": true,
+  "showDocsButton": true,
+  "showCopyLinkButton": true,
+  "showContactSection": true
+};
+
+    // Rendering contract:
+    // HTML fields: infoBox, infoNote, overview, footnote, additionalConsiderations,
+    // costProfile items, tierComparison items, networking essentials items,
+    // shared services essentials items, service config items, platform warnings items.
+    // All other fields are treated as text and escaped.
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function isRenderOptionEnabled(key, defaultValue) {
+      if (!renderOptions || typeof renderOptions !== 'object') {
+        return defaultValue;
+      }
+      var value = renderOptions[key];
+      return typeof value === 'boolean' ? value : defaultValue;
+    }
+
+    const state = {
+      currentQuestion: 'q1',
+      history: [],
+      breadcrumbPath: ['Start'],
+      lastResultId: null,
+      context: {}
+    };
+
+    const contentEl = document.getElementById('content');
+    const progressEl = document.getElementById('progress-bar');
+    const breadcrumbsEl = document.getElementById('breadcrumbs');
+    const backBtn = document.getElementById('back-btn');
+    const restartBtn = document.getElementById('restart-btn');
+
+    const normalizeId = (id) => (id ?? '').toString().toLowerCase().trim();
+    const normalizeKey = (value) => (value ?? '').toString().toLowerCase().replace(/\s+/g, ' ').trim();
+
+    function resolveDynamicTarget(nextId) {
+      var resolved = nextId || '';
+      if (resolved.includes('{tier}')) {
+        if (!state.context.tier) {
+          return resolved;
+        }
+        resolved = resolved.replace(/\{tier\}/g, state.context.tier);
+      }
+      return resolved;
+    }
+
+    function buildIdMap(items) {
+      return Object.keys(items).reduce((map, key) => {
+        map[normalizeId(key)] = key;
+        return map;
+      }, {});
+    }
+
+    const questionIdMap = buildIdMap(questions);
+    const resultIdMap = buildIdMap(results);
+
+    function resolveQuestionId(id) {
+      return questionIdMap[normalizeId(id)];
+    }
+
+    function resolveResultId(id) {
+      return resultIdMap[normalizeId(id)];
+    }
+
+    function validateOptionTargets() {
+      var errorCount = 0;
+      Object.entries(questions).forEach(([questionId, question]) => {
+        (question.options || []).forEach((option) => {
+          const targetId = option.next;
+          const raw = normalizeId(targetId);
+          const candidates = raw.includes('{tier}')
+            ? ['critical', 'high', 'medium', 'low'].map(function (tier) { return raw.replace('{tier}', tier); })
+            : [raw];
+          const exists = candidates.some(function (candidate) {
+            return questionIdMap[candidate] || resultIdMap[candidate];
+          });
+          if (!exists) {
+            console.error('Decision Tree Validation: Missing target id "' + targetId + '" referenced from "' + questionId + '".');
+            errorCount += 1;
+          }
+        });
+        // Feature 1: validate dropdown range targets
+        (question.dropdownRanges || []).forEach((range) => {
+          const normalized = normalizeId(range.next);
+          const exists = questionIdMap[normalized] || resultIdMap[normalized];
+          if (!exists) {
+            console.error('Decision Tree Validation: Missing dropdown target "' + range.next + '" from "' + questionId + '" range ' + range.label + '.');
+            errorCount += 1;
+          }
+        });
+
+        var matrix = question.dropdownMatrix || {};
+        Object.keys(matrix).forEach(function (leftBucket) {
+          var row = matrix[leftBucket] || {};
+          Object.keys(row).forEach(function (rightBucket) {
+            var targetId = row[rightBucket];
+            var normalized = normalizeId(targetId);
+            var exists = questionIdMap[normalized] || resultIdMap[normalized];
+            if (!exists) {
+              console.error('Decision Tree Validation: Missing dropdown matrix target "' + targetId + '" from "' + questionId + '" for ' + leftBucket + ' + ' + rightBucket + '.');
+              errorCount += 1;
+            }
+          });
+        });
+      });
+      return errorCount;
+    }
+
+    /* ── Feature 3: Search index ─────────────────────────── */
+
+    function buildSearchIndex() {
+      return Object.entries(results).map(function (entry) {
+        var id = entry[0];
+        var result = entry[1];
+        var badge = result.badge || { text: '', className: '' };
+        var searchableText = [
+          result.title || '',
+          badge.text || '',
+        ]
+          .concat(result.searchTags || [])
+          .concat(result.techTags || [])
+          .concat(result.bestFor || [])
+          .join(' ')
+          .toLowerCase();
+
+        return { id: id, title: result.title, icon: result.icon, badge: badge, text: searchableText };
+      });
+    }
+
+    var searchIndex = buildSearchIndex();
+
+    (function initSearch() {
+      var searchBar = document.getElementById('search-bar');
+      var searchInput = document.getElementById('search-input');
+      var searchClear = document.getElementById('search-clear');
+      var searchResultsEl = document.getElementById('search-results');
+      var searchToggle = document.getElementById('search-toggle');
+
+      if (!searchBar || !searchInput || !searchClear || !searchResultsEl) {
+        return;
+      }
+
+      if (searchToggle) {
+        searchToggle.addEventListener('click', function () {
+          var isCollapsed = searchBar.classList.contains('is-collapsed');
+          if (isCollapsed) {
+            searchBar.classList.remove('is-collapsed');
+            searchToggle.setAttribute('aria-expanded', 'true');
+            searchInput.focus();
+          } else {
+            searchBar.classList.add('is-collapsed');
+            searchToggle.setAttribute('aria-expanded', 'false');
+            searchResultsEl.style.display = 'none';
+          }
+        });
+      }
+
+      searchInput.addEventListener('input', function (e) {
+        var query = e.target.value.trim().toLowerCase();
+        searchClear.style.display = query ? 'block' : 'none';
+
+        if (query.length < 2) {
+          searchResultsEl.style.display = 'none';
+          searchResultsEl.innerHTML = '';
+          return;
+        }
+
+        var terms = query.split(/\s+/);
+        var matches = searchIndex.filter(function (item) {
+          return terms.every(function (term) { return item.text.includes(term); });
+        });
+
+        if (matches.length === 0) {
+          searchResultsEl.style.display = 'block';
+          searchResultsEl.innerHTML = '<div style="padding:0.75rem;color:var(--color-text-muted);">No matching services found</div>';
+          return;
+        }
+
+        searchResultsEl.style.display = 'flex';
+        searchResultsEl.innerHTML = matches.map(function (m) {
+          var badgeClass = (m.badge && m.badge.className) ? m.badge.className : '';
+          var badgeText = (m.badge && m.badge.text) ? m.badge.text : '';
+          return '<div class="search-result-item" tabindex="0" role="option" data-result-id="' + m.id + '">' +
+            '<span class="search-result-icon">' + escapeHtml(m.icon) + '</span>' +
+            '<span class="search-result-title">' + escapeHtml(m.title) + '</span>' +
+            '<span class="badge ' + badgeClass + ' search-result-badge">' + escapeHtml(badgeText) + '</span>' +
+            '</div>';
+        }).join('');
+
+        searchResultsEl.querySelectorAll('.search-result-item').forEach(function (item) {
+          item.addEventListener('click', function () { jumpToSearchResult(item); });
+          item.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter') { jumpToSearchResult(item); }
+            if (ev.key === 'ArrowDown') {
+              ev.preventDefault();
+              var next = item.nextElementSibling;
+              if (next) next.focus();
+            } else if (ev.key === 'ArrowUp') {
+              ev.preventDefault();
+              var prev = item.previousElementSibling;
+              if (prev && prev.classList.contains('search-result-item')) prev.focus();
+              else searchInput.focus();
+            } else if (ev.key === 'Escape') {
+              searchResultsEl.style.display = 'none';
+              searchInput.focus();
+            }
+          });
+        });
+      });
+
+      function jumpToSearchResult(item) {
+        var resultId = item.getAttribute('data-result-id');
+        var breadcrumbLabel = getBreadcrumbLabel(results[resultId]);
+        state.history = [];
+        state.breadcrumbPath = ['Start', '\uD83D\uDD0D Search', breadcrumbLabel];
+        state.currentQuestion = 'result';
+        renderResult(resultId);
+        searchInput.value = '';
+        searchResultsEl.style.display = 'none';
+        searchClear.style.display = 'none';
+        writeHash();
+      }
+
+      searchClear.addEventListener('click', function () {
+        searchInput.value = '';
+        searchResultsEl.style.display = 'none';
+        searchClear.style.display = 'none';
+        searchInput.focus();
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.search-bar')) {
+          searchResultsEl.style.display = 'none';
+        }
+      });
+
+      searchInput.addEventListener('keydown', function (e) {
+        var items = searchResultsEl.querySelectorAll('.search-result-item');
+        if (!items.length) return;
+        var focused = document.activeElement;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (focused === searchInput) { items[0].focus(); }
+          else if (focused.nextElementSibling) { focused.nextElementSibling.focus(); }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (focused.previousElementSibling && focused.previousElementSibling.classList.contains('search-result-item')) {
+            focused.previousElementSibling.focus();
+          } else { searchInput.focus(); }
+        } else if (e.key === 'Escape') {
+          searchResultsEl.style.display = 'none';
+          searchInput.blur();
+        }
+      });
+    })();
+
+    /* ── Feature 10: Deep links ──────────────────────────── */
+
+    function encodeHashSegment(value) {
+      return encodeURIComponent(value).replace(/%20/g, '+');
+    }
+
+    function decodeHashSegment(value) {
+      return decodeURIComponent(value.replace(/\+/g, ' '));
+    }
+
+    function writeHash() {
+      var segments = [];
+      var path = [];
+      for (var i = 0; i < state.history.length; i++) {
+        var entry = state.history[i];
+        if (!entry.questionId || !entry.nextId) continue;
+        path.push(encodeHashSegment(entry.questionId));
+        path.push(encodeHashSegment(entry.nextId));
+      }
+
+      if (!path.length) {
+        var rootId = state.lastResultId || state.currentQuestion;
+        if (rootId) {
+          path.push(encodeHashSegment(rootId));
+        }
+      }
+
+      try {
+        history.replaceState(null, '', '#path=' + path.join('/'));
+      } catch (ignored) {
+        // Confluence iframe may block replaceState
+        window.location.hash = 'path=' + path.join('/');
+      }
+    }
+
+    function replayFromHash() {
+      var hash = window.location.hash;
+      if (!hash || hash.indexOf('#path=') !== 0) {
+        renderQuestion('q1');
+        return;
+      }
+
+      var raw = hash.slice('#path='.length);
+      var segments = raw.split('/').map(function (s) { return decodeHashSegment(s); }).filter(Boolean);
+
+      if (!segments.length) {
+        renderQuestion('q1');
+        return;
+      }
+
+      // segments: [questionId, nextId, questionId, nextId, ..., finalId]
+      if (segments.length === 1) {
+        var single = segments[0];
+        if (results[single]) {
+          renderResult(single);
+        } else if (questions[single]) {
+          renderQuestion(single);
+        } else {
+          renderQuestion('q1');
+        }
+        return;
+      }
+
+      if (segments.length % 2 !== 0) {
+        console.warn('Deep link replay: invalid path length.');
+        segments = segments.slice(0, -1);
+      }
+
+      renderQuestion('q1');
+
+      for (var i = 0; i < segments.length; i += 2) {
+        var currentQId = segments[i];
+        var nextId = segments[i + 1];
+
+        if (!currentQId || !nextId) break;
+
+        // Verify we are at the expected question
+        if (normalizeId(state.currentQuestion) !== normalizeId(currentQId)) break;
+
+        var question = questions[state.currentQuestion];
+        if (!question) break;
+
+        var optionText = null;
+        var nextNormalized = normalizeId(nextId);
+
+        if (question.options) {
+          for (var k = 0; k < question.options.length; k++) {
+            if (normalizeId(question.options[k].next) === nextNormalized) {
+              optionText = question.options[k].text;
+              break;
+            }
+          }
+        }
+
+        if (!optionText && question.dropdownRanges) {
+          for (var r = 0; r < question.dropdownRanges.length; r++) {
+            var rng = question.dropdownRanges[r];
+            if (normalizeId(rng.next) === nextNormalized) {
+              optionText = (question.dropdownLabel || 'Selection') + ': ' + (rng.label || nextId);
+              break;
+            }
+          }
+        }
+
+        if (!optionText) {
+          optionText = question.title || nextId;
+        }
+
+        selectOption(nextId, optionText, true);
+
+        if (state.currentQuestion === 'result') {
+          break;
+        }
+      }
+    }
+
+    /* ── Render helpers ───────────────────────────────────── */
+
+    function renderListSection(title, items) {
+      if (!items || !items.length) return '';
+      return '<div class="result-section"><h3>' + escapeHtml(title) + '</h3><ul>' +
+        items.map(function (item) { return '<li>' + linkifyEmails(escapeHtml(item)) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+
+    function renderHtmlListSection(title, items) {
+      if (!items || !items.length) return '';
+      return '<div class="result-section"><h3>' + escapeHtml(title) + '</h3><ul>' +
+        items.map(function (item) { return '<li>' + linkifyEmails(item) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+
+    function stripLeadingVerb(title) {
+      if (!title) return '';
+      var cleaned = title.replace(/^(Use|Deploy|Implement|Configure|Resolve|Restore|Run|Follow|Apply|Request|Fix|Enable|Get|Complete|Harden|Validate|Provision|Choose)\s+/i, '');
+      cleaned = cleaned.replace(/^(the|a|an)\s+/i, '');
+      return cleaned.trim();
+    }
+
+    function getBreadcrumbLabel(result) {
+      if (!result) return '';
+      if (result.breadcrumb) return result.breadcrumb;
+      var derived = stripLeadingVerb(result.title);
+      return derived || result.title;
+    }
+
+    function renderNoteBox(note) {
+      if (!note) return '';
+      return '<div class="info-box"><h4>Note</h4><p>' + note + '</p></div>';
+    }
+
+    function renderResponsibilitySection(result) {
+      if (!result.responsibility || !result.responsibility.length) return '';
+      var links = result.responsibilityLinks || [];
+      return '<div class="support-section"><h4>Responsibility Model &amp; Contact</h4><ul>' +
+        result.responsibility.map(function (line) {
+          var text = escapeHtml(line);
+          text = applyInlineLinks(text, links);
+          text = linkifyEmails(text);
+          return '<li>' + text + '</li>';
+        }).join('') +
+        '</ul></div>';
+    }
+
+    function renderSupportSection(result) {
+      if (!result.supportSection) return '';
+      var links = result.supportSection.links || [];
+      return '<div class="support-section"><h4>' + escapeHtml(result.supportSection.title) + '</h4><ul>' +
+        (result.supportSection.lines || []).map(function (line) {
+          var text = escapeHtml(line);
+          text = applyInlineLinks(text, links);
+          text = linkifyEmails(text);
+          return '<li>' + text + '</li>';
+        }).join('') +
+        '</ul></div>';
+    }
+
+    function extractContactAliases(lines) {
+      if (!lines || !lines.length) return [];
+      var matches = [];
+      var regex = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+      lines.forEach(function (line) {
+        var found = line.match(regex) || [];
+        found.forEach(function (email) {
+          var normalized = email.toLowerCase();
+          if (matches.indexOf(normalized) === -1) {
+            matches.push(normalized);
+          }
+        });
+      });
+      return matches;
+    }
+
+    function renderContactSection(result) {
+      var contacts = (result.contact && result.contact.length) ? result.contact : [];
+      if (!contacts.length) {
+        var responsibilityContacts = extractContactAliases(result.responsibility || []);
+        var supportContacts = extractContactAliases(result.supportSection ? result.supportSection.lines : []);
+        contacts = responsibilityContacts.concat(supportContacts).filter(function (value, index, self) {
+          return self.indexOf(value) === index;
+        });
+      }
+      if (!contacts.length) {
+        return '';
+      }
+      return renderListSection('Contact', contacts);
+    }
+
+    function renderOrderedSection(title, items) {
+      if (!items || !items.length) return '';
+      return '<div class="result-section"><h3>' + escapeHtml(title) + '</h3><ol class="ordered-list">' +
+        items.map(function (item) { return '<li>' + linkifyEmails(escapeHtml(item)) + '</li>'; }).join('') +
+        '</ol></div>';
+    }
+
+    function renderOrderedHtmlSection(title, items) {
+      if (!items || !items.length) return '';
+      return '<div class="result-section"><h3>' + escapeHtml(title) + '</h3><ol class="ordered-list">' +
+        items.map(function (item) { return '<li>' + linkifyEmails(item) + '</li>'; }).join('') +
+        '</ol></div>';
+    }
+
+    function findServiceConfig(configs, selectedName) {
+      if (!configs || !configs.length || !selectedName) return null;
+      var selectedKey = normalizeKey(selectedName);
+      for (var i = 0; i < configs.length; i++) {
+        if (normalizeKey(configs[i].name) === selectedKey) {
+          return configs[i];
+        }
+      }
+      return null;
+    }
+
+    function extractFitWarnings(items) {
+      if (!items || !items.length) return [];
+      return items.filter(function (item) {
+        var plain = item.replace(/<[^>]+>/g, '').toLowerCase();
+        return plain.indexOf('⚠') !== -1 || plain.indexOf('fit warning') !== -1;
+      });
+    }
+
+    function renderServiceConfigSection(title, configs, selectedName) {
+      var match = findServiceConfig(configs, selectedName);
+      if (!match) return '';
+      return '<div class="result-section"><h3>' + escapeHtml(title) + '</h3>' +
+        '<div class="service-block">' +
+          '<div class="service-block-title">' + escapeHtml(match.name) + '</div>' +
+          '<ul>' + (match.items || []).map(function (item) { return '<li>' + item + '</li>'; }).join('') + '</ul>' +
+        '</div>' +
+        '</div>';
+    }
+
+    function renderWarningList(title, items) {
+      if (!items || !items.length) return '';
+      return '<div class="warning-box"><h4>' + escapeHtml(title) + '</h4><ul>' +
+        items.map(function (item) { return '<li>' + linkifyEmails(escapeHtml(item)) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+
+    function renderWarningListHtml(title, items) {
+      if (!items || !items.length) return '';
+      return '<div class="warning-box"><h4>' + escapeHtml(title) + '</h4><ul>' +
+        items.map(function (item) { return '<li>' + linkifyEmails(item) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+
+    function linkifyEmails(value) {
+      if (!value) return value;
+      return value.replace(
+        /([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})/gi,
+        '<a href="mailto:$1">$1</a>'
+      );
+    }
+
+    function applyInlineLinks(text, links) {
+      if (!text || !links || !links.length) return text;
+      var output = text;
+      links.forEach(function (link) {
+        var label = escapeHtml(link.label || '');
+        if (!label) return;
+        var anchor = '<a href="' + link.url + '" target="_blank" rel="noopener noreferrer">' +
+          label + ' <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span></a>';
+        var labeled = ': ' + label;
+        if (output.indexOf(labeled) !== -1) {
+          output = output.replace(labeled, ': ' + anchor);
+          return;
+        }
+        if (output.indexOf(label) === -1) return;
+        output = output.replace(label, anchor);
+      });
+      return output;
+    }
+
+    function findSection(sections, type, contextKey) {
+      if (!sections || !sections.length) return null;
+      for (var i = 0; i < sections.length; i++) {
+        var section = sections[i];
+        if (!section || section.type !== type) continue;
+        if (contextKey && section.contextKey !== contextKey) continue;
+        return section;
+      }
+      return null;
+    }
+
+    function renderSections(sections, result, platformWarnings) {
+      if (!sections || !sections.length) return '';
+      return sections.map(function (section) {
+        if (!section || !section.type) return '';
+        if (section.type === 'list') {
+          return renderHtmlListSection(section.title, section.items);
+        }
+        if (section.type === 'html-list') {
+          return renderHtmlListSection(section.title, section.items);
+        }
+        if (section.type === 'ordered') {
+          return renderOrderedHtmlSection(section.title, section.items);
+        }
+        if (section.type === 'warning') {
+          return renderWarningListHtml(section.title, section.items);
+        }
+        if (section.type === 'warning-html') {
+          return renderWarningListHtml(section.title, section.items);
+        }
+        if (section.type === 'platform-warnings') {
+          var baseWarnings = section.items || [];
+          var combined = baseWarnings.concat(platformWarnings || []);
+          return renderWarningListHtml(section.title || 'Platform Fit Warnings', combined);
+        }
+        if (section.type === 'service-config') {
+          var contextKey = section.contextKey || '';
+          var selectedName = contextKey ? state.context[contextKey] : null;
+          return renderServiceConfigSection(section.title, section.configs, selectedName);
+        }
+        return '';
+      }).join('');
+    }
+
+    function renderCopyBlocks(copyBlocks) {
+      if (!copyBlocks || !copyBlocks.length) return '';
+      return copyBlocks.map(function (copyBlock, index) {
+        var copyId = 'copy-block-' + index;
+        return '<div class="result-section copy-block-section"><h3>' + escapeHtml(copyBlock.title) + '</h3>' +
+          '<div class="copy-block-wrapper">' +
+            '<button class="copy-block-btn" type="button" data-copy-target="' + copyId + '">Copy</button>' +
+            '<pre class="copy-block-pre" id="' + copyId + '">' + escapeHtml(copyBlock.content || '') + '</pre>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function bindCopyBlockButtons() {
+      contentEl.querySelectorAll('.copy-block-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var targetId = button.getAttribute('data-copy-target');
+          var pre = targetId ? document.getElementById(targetId) : null;
+          if (!pre || !navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+            return;
+          }
+
+          navigator.clipboard.writeText(pre.textContent || '').then(function () {
+            button.textContent = 'Copied ✓';
+            setTimeout(function () {
+              button.textContent = 'Copy';
+            }, 2000);
+          });
+        });
+      });
+    }
+
+    /* ── Feature 1: Dropdown renderer ────────────────────── */
+
+    function resolveTargetLabel(nextId) {
+      var rId = resolveResultId(nextId);
+      if (rId) return results[rId].title;
+      var qId = resolveQuestionId(nextId);
+      if (qId) return questions[qId].title;
+      return nextId;
+    }
+
+    function renderDropdownQuestion(question, questionId) {
+      var placeholderLabel = escapeHtml(question.dropdownLabel || 'Select...');
+      var optionsHtml = '<option value="" disabled selected>' + placeholderLabel + '</option>';
+
+      for (var i = 0; i < question.dropdownRanges.length; i++) {
+        var range = question.dropdownRanges[i];
+        for (var v = range.min; v <= range.max; v++) {
+          var optionLabel = (range.min === range.max && range.label) ? range.label : v;
+          optionsHtml += '<option value="' + v + '" data-next="' + range.next +
+            '" data-label="' + range.label + '">' + escapeHtml(optionLabel) + '</option>';
+        }
+      }
+
+      var selectId = 'dropdown-' + questionId;
+      return '<div class="dropdown-wrapper">' +
+        '<label for="' + selectId + '" class="sr-only">' +
+          escapeHtml(question.dropdownLabel || 'Select a value') +
+        '</label>' +
+        '<select class="dropdown-select" id="' + selectId + '" aria-describedby="question-subtitle-' +
+        questionId + '">' +
+        optionsHtml + '</select>' +
+        '<button class="dropdown-confirm" id="dropdown-confirm" disabled>Continue \u2192</button>' +
+        '</div>';
+    }
+
+    function renderDropdownPairQuestion(question, questionId) {
+      var leftPlaceholder = escapeHtml(question.dropdownLeftLabel || 'Select...');
+      var rightPlaceholder = escapeHtml(question.dropdownRightLabel || 'Select...');
+      var leftOptionsHtml = '<option value="" disabled selected>' + leftPlaceholder + '</option>';
+      var rightOptionsHtml = '<option value="" disabled selected>' + rightPlaceholder + '</option>';
+
+      for (var i = 0; i < question.dropdownLeftRanges.length; i++) {
+        var leftRange = question.dropdownLeftRanges[i];
+        for (var lv = leftRange.min; lv <= leftRange.max; lv++) {
+          var leftLabel = (leftRange.min === leftRange.max && leftRange.label) ? leftRange.label : lv;
+          leftOptionsHtml += '<option value="' + lv + '" data-bucket="' + leftRange.bucket +
+            '" data-label="' + leftRange.label + '">' + escapeHtml(leftLabel) + '</option>';
+        }
+      }
+
+      for (var j = 0; j < question.dropdownRightRanges.length; j++) {
+        var rightRange = question.dropdownRightRanges[j];
+        for (var rv = rightRange.min; rv <= rightRange.max; rv++) {
+          var rightLabel = (rightRange.min === rightRange.max && rightRange.label) ? rightRange.label : rv;
+          rightOptionsHtml += '<option value="' + rv + '" data-bucket="' + rightRange.bucket +
+            '" data-label="' + rightRange.label + '">' + escapeHtml(rightLabel) + '</option>';
+        }
+      }
+
+      return '<div class="dropdown-pair">' +
+        '<div class="dropdown-pair-column">' +
+          '<label class="dropdown-pair-label" for="dropdown-left">' +
+            escapeHtml(question.dropdownLeftLabel || 'Select left') +
+          '</label>' +
+          '<select class="dropdown-select" id="dropdown-left" aria-describedby="question-subtitle-' +
+            questionId + '" aria-label="' +
+            escapeHtml(question.dropdownLeftLabel || 'Select left') + '">' +
+            leftOptionsHtml +
+          '</select>' +
+        '</div>' +
+        '<div class="dropdown-pair-column">' +
+          '<label class="dropdown-pair-label" for="dropdown-right">' +
+            escapeHtml(question.dropdownRightLabel || 'Select right') +
+          '</label>' +
+          '<select class="dropdown-select" id="dropdown-right" aria-describedby="question-subtitle-' +
+            questionId + '" aria-label="' +
+            escapeHtml(question.dropdownRightLabel || 'Select right') + '">' +
+            rightOptionsHtml +
+          '</select>' +
+        '</div>' +
+        '<div class="tier-row">' +
+          '<div class="tier-chip tier-unknown" id="tier-chip">Tier: select RTO and RPO</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function renderDropdownPairActions() {
+      return '<div class="dropdown-pair-actions">' +
+        '<button class="dropdown-confirm" id="dropdown-pair-confirm" disabled>Continue \u2192</button>' +
+      '</div>';
+    }
+
+    function bindDropdownHandlers(question, questionId) {
+      var select = document.getElementById('dropdown-' + questionId);
+      var confirmBtn = document.getElementById('dropdown-confirm');
+
+      select.addEventListener('change', function () {
+        confirmBtn.disabled = !select.value;
+      });
+
+      confirmBtn.addEventListener('click', function () {
+        var selected = select.selectedOptions[0];
+        if (!selected || !selected.value) return;
+
+        var nextId = selected.getAttribute('data-next');
+        var value = selected.value;
+        var rangeLabel = selected.getAttribute('data-label');
+        var optionText = (question.dropdownLabel || 'Selection') + ': ' + value + ' (range ' + rangeLabel + ')';
+
+        selectOption(nextId, optionText);
+      });
+    }
+
+    function bindDropdownPairHandlers(question) {
+      var leftSelect = document.getElementById('dropdown-left');
+      var rightSelect = document.getElementById('dropdown-right');
+      var confirmBtn = document.getElementById('dropdown-pair-confirm');
+      var tierChip = document.getElementById('tier-chip');
+
+      function updateTierChip() {
+        if (!tierChip) return;
+        if (!(leftSelect.value && rightSelect.value)) {
+          tierChip.innerHTML = 'Based on your selection, your Recovery Tier is <span class="tier-emphasis">pending</span>.';
+          tierChip.className = 'tier-chip tier-unknown';
+          return;
+        }
+
+        var leftBucket = leftSelect.selectedOptions[0].getAttribute('data-bucket');
+        var rightBucket = rightSelect.selectedOptions[0].getAttribute('data-bucket');
+        var tierMatrix = question.dropdownTierMatrix || {};
+        var tier = tierMatrix[leftBucket] ? tierMatrix[leftBucket][rightBucket] : null;
+
+        if (!tier) {
+          tierChip.innerHTML = 'Based on your selection, your Recovery Tier is <span class="tier-emphasis">unknown</span>.';
+          tierChip.className = 'tier-chip tier-unknown';
+          return;
+        }
+
+        var tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
+        tierChip.innerHTML = 'Based on your selection, your Recovery Tier is <span class="tier-emphasis">' + tierLabel + '</span>.';
+        tierChip.className = 'tier-chip tier-' + tier;
+      }
+
+      function applyTierToDropdowns(tier) {
+        var tiers = ['critical', 'high', 'medium', 'low'];
+        tiers.forEach(function (value) {
+          leftSelect.classList.remove('tier-' + value);
+          rightSelect.classList.remove('tier-' + value);
+        });
+
+        if (tier) {
+          leftSelect.classList.add('tier-' + tier);
+          rightSelect.classList.add('tier-' + tier);
+        }
+      }
+
+      function updateMatrixHighlight(leftLabel, rightLabel) {
+        var table = document.querySelector('.matrix-table table');
+        if (!table) return;
+
+        var cells = table.querySelectorAll('td[data-row-label][data-col-label] .matrix-cell');
+        cells.forEach(function (cell) {
+          cell.classList.remove('is-active');
+          cell.classList.remove('is-dim');
+        });
+
+        if (!leftLabel || !rightLabel) return;
+
+        cells.forEach(function (cell) {
+          cell.classList.add('is-dim');
+        });
+
+        var activeCell = table.querySelector(
+          'td[data-row-label="' + leftLabel + '"][data-col-label="' + rightLabel + '"] .matrix-cell'
+        );
+        if (activeCell) {
+          activeCell.classList.remove('is-dim');
+          activeCell.classList.add('is-active');
+        }
+      }
+
+      function toggleConfirm() {
+        confirmBtn.disabled = !(leftSelect.value && rightSelect.value);
+        leftSelect.classList.toggle('is-selected', !!leftSelect.value);
+        rightSelect.classList.toggle('is-selected', !!rightSelect.value);
+        updateTierChip();
+        var tier = null;
+        if (leftSelect.value && rightSelect.value) {
+          var leftBucket = leftSelect.selectedOptions[0].getAttribute('data-bucket');
+          var rightBucket = rightSelect.selectedOptions[0].getAttribute('data-bucket');
+          var tierMatrix = question.dropdownTierMatrix || {};
+          tier = tierMatrix[leftBucket] ? tierMatrix[leftBucket][rightBucket] : null;
+        }
+        applyTierToDropdowns(tier);
+        updateMatrixHighlight(
+          leftSelect.selectedOptions[0] ? leftSelect.selectedOptions[0].getAttribute('data-label') : '',
+          rightSelect.selectedOptions[0] ? rightSelect.selectedOptions[0].getAttribute('data-label') : ''
+        );
+      }
+
+      leftSelect.addEventListener('change', toggleConfirm);
+      rightSelect.addEventListener('change', toggleConfirm);
+
+      confirmBtn.addEventListener('click', function () {
+        var leftOption = leftSelect.selectedOptions[0];
+        var rightOption = rightSelect.selectedOptions[0];
+        if (!leftOption || !rightOption) return;
+
+        var leftBucket = leftOption.getAttribute('data-bucket');
+        var rightBucket = rightOption.getAttribute('data-bucket');
+        var tierMatrix = question.dropdownTierMatrix || {};
+        var tierValue = tierMatrix[leftBucket] ? tierMatrix[leftBucket][rightBucket] : null;
+        var nextId = question.dropdownMatrix && question.dropdownMatrix[leftBucket]
+          ? question.dropdownMatrix[leftBucket][rightBucket]
+          : null;
+
+        if (!nextId) {
+          alert('Missing dropdown matrix mapping for ' + leftBucket + ' + ' + rightBucket + '.');
+          return;
+        }
+
+        var leftLabel = leftOption.getAttribute('data-label') || leftOption.value;
+        var rightLabel = rightOption.getAttribute('data-label') || rightOption.value;
+        var leftPrefix = question.dropdownLeftLabel || 'Left';
+        var rightPrefix = question.dropdownRightLabel || 'Right';
+        var optionText = leftPrefix + ': ' + leftLabel + '; ' + rightPrefix + ': ' + rightLabel;
+
+        state.context.tier = tierValue || null;
+        state.context.rtoBucket = leftLabel;
+        state.context.rpoBucket = rightLabel;
+
+        selectOption(nextId, optionText);
+      });
+
+      updateTierChip();
+      updateMatrixHighlight('', '');
+    }
+
+    function renderMatrixTable(question) {
+      if (!question.dropdownMatrixTable) return '';
+
+      var columns = question.dropdownMatrixTable.columns || [];
+      var rows = question.dropdownMatrixTable.rows || [];
+
+      if (!columns.length || !rows.length) return '';
+
+      var headerHtml = '<tr><th>Recovery Time Objective (RTO)</th>' +
+        columns.map(function (col) { return '<th>' + escapeHtml(col) + '</th>'; }).join('') +
+        '</tr>';
+
+      var rowsHtml = rows.map(function (row) {
+        var cellsHtml = (row.cells || []).map(function (cell, cellIndex) {
+          var value = (cell || '').toLowerCase();
+          var className = '';
+          var code = '';
+          if (value === 'critical') className = 'matrix-cell-critical';
+          else if (value === 'high') className = 'matrix-cell-high';
+          else if (value === 'medium') className = 'matrix-cell-medium';
+          else if (value === 'low') className = 'matrix-cell-low';
+          if (value === 'critical') code = 'C';
+          else if (value === 'high') code = 'H';
+          else if (value === 'medium') code = 'M';
+          else if (value === 'low') code = 'L';
+          var colLabel = columns[cellIndex] || '';
+          return '<td data-row-label="' + row.label + '" data-col-label="' + colLabel + '">' +
+            '<span class="matrix-cell ' + className + '">' +
+              '<span class="matrix-code">' + code + '</span>' +
+              '<span class="matrix-label">' + escapeHtml(cell) + '</span>' +
+            '</span>' +
+          '</td>';
+        }).join('');
+        return '<tr><td>' + escapeHtml(row.label) + '</td>' + cellsHtml + '</tr>';
+      }).join('');
+
+      var legendHtml = '<div class="matrix-legend">' +
+        '<span class="matrix-legend-item"><span class="matrix-legend-swatch matrix-cell-critical"></span>Critical</span>' +
+        '<span class="matrix-legend-item"><span class="matrix-legend-swatch matrix-cell-high"></span>High</span>' +
+        '<span class="matrix-legend-item"><span class="matrix-legend-swatch matrix-cell-medium"></span>Medium</span>' +
+        '<span class="matrix-legend-item"><span class="matrix-legend-swatch matrix-cell-low"></span>Low</span>' +
+        '</div>';
+
+      return '<div class="matrix-header">' +
+        '<div class="matrix-title">Disaster Recovery Matrix</div>' +
+        legendHtml +
+        '</div>' +
+        '<div class="matrix-subtitle">Recovery Point Objective (RPO)</div>' +
+        '<div class="matrix-table"><table>' + headerHtml + rowsHtml + '</table></div>';
+    }
+
+    /* ── Button renderer (existing, refactored) ──────────── */
+
+    function renderButtonQuestion(question, questionId) {
+      return '<div class="options-container" role="listbox" aria-label="Answer options for: ' +
+        escapeHtml(question.title || 'Question') + '">' + question.options.map(function (option) {
+        var classes = ['option-btn'];
+        if (option.recommended) classes.push('recommended');
+        if (option.advanced) classes.push('advanced');
+        return '<button class="' + classes.join(' ') + '" data-next="' + option.next +
+          '" data-text="' + escapeHtml(option.text) + '" role="option" aria-describedby="question-subtitle-' +
+          questionId + '">' + escapeHtml(option.text) + '</button>';
+      }).join('') + '</div>';
+    }
+
+    function bindButtonHandlers() {
+      contentEl.querySelectorAll('.option-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (event) {
+          var nextId = event.currentTarget.getAttribute('data-next');
+          var optionText = event.currentTarget.getAttribute('data-text');
+          selectOption(nextId, optionText);
+        });
+      });
+    }
+
+    // Keyboard navigation for option buttons
+    function initKeyboardNav() {
+      document.addEventListener('keydown', function (e) {
+        var activeEl = document.activeElement;
+        if (!activeEl || !activeEl.classList.contains('option-btn')) return;
+
+        var container = activeEl.closest('.options-container');
+        if (!container) return;
+
+        var buttons = Array.from(container.querySelectorAll('.option-btn'));
+        var currentIndex = buttons.indexOf(activeEl);
+        var nextIndex = -1;
+
+        switch (e.key) {
+          case 'ArrowDown':
+          case 'ArrowRight':
+            e.preventDefault();
+            nextIndex = (currentIndex + 1) % buttons.length;
+            break;
+          case 'ArrowUp':
+          case 'ArrowLeft':
+            e.preventDefault();
+            nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+            break;
+          case 'Home':
+            e.preventDefault();
+            nextIndex = 0;
+            break;
+          case 'End':
+            e.preventDefault();
+            nextIndex = buttons.length - 1;
+            break;
+        }
+
+        if (nextIndex >= 0 && buttons[nextIndex]) {
+          buttons[nextIndex].focus();
+        }
+      });
+    }
+
+    function focusCurrentView() {
+      contentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var activeCard = document.querySelector('.question-card:not([hidden]), .result-card:not([hidden])');
+      if (activeCard) {
+        var heading = activeCard.querySelector('h2, h3');
+        if (heading) {
+          heading.setAttribute('tabindex', '-1');
+          heading.focus({ preventScroll: false });
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      initKeyboardNav();
+    });
+
+    /* ── Core navigation ─────────────────────────────────── */
+
+    function renderQuestion(questionId) {
+      var question = questions[questionId];
+      if (!question) return;
+
+      state.currentQuestion = questionId;
+      state.lastResultId = null;
+
+      var infoBoxHtml = question.infoBox
+        ? '<div class="info-box"><h4>Info</h4><p>' + question.infoBox + '</p></div>'
+        : '';
+
+      var interactiveHtml;
+      if (question.type === 'dropdown') {
+        interactiveHtml = renderDropdownQuestion(question, questionId);
+      } else if (question.type === 'dropdown-pair') {
+        interactiveHtml = renderDropdownPairQuestion(question, questionId);
+      } else {
+        interactiveHtml = renderButtonQuestion(question, questionId);
+      }
+
+      var matrixImageHtml = '';
+      if (question.type === 'dropdown-pair' && question.dropdownPairImage) {
+        var altText = escapeHtml(question.dropdownPairImageAlt || 'Disaster recovery matrix');
+        matrixImageHtml = '<div class="matrix-image"><img src="' + question.dropdownPairImage +
+          '" alt="' + altText + '"></div>';
+      }
+
+      var matrixTableHtml = '';
+      var actionsHtml = '';
+      if (question.type === 'dropdown-pair') {
+        matrixTableHtml = renderMatrixTable(question);
+        actionsHtml = renderDropdownPairActions();
+      }
+
+      var subtitleText = question.subtitle ? escapeHtml(question.subtitle) : '';
+      var subtitleClass = question.subtitle ? 'question-subtitle' : 'question-subtitle sr-only';
+
+      contentEl.innerHTML =
+        '<div id="question-' + questionId + '" class="question-card" role="region" aria-labelledby="question-title-' +
+          questionId + '">' +
+          '<h2 id="question-title-' + questionId + '" class="question-title">' + escapeHtml(question.title) + '</h2>' +
+          '<p id="question-subtitle-' + questionId + '" class="' + subtitleClass + '">' + subtitleText + '</p>' +
+          infoBoxHtml +
+          interactiveHtml +
+          matrixTableHtml +
+          actionsHtml +
+          matrixImageHtml +
+        '</div>';
+
+      if (question.type === 'dropdown') {
+        bindDropdownHandlers(question, questionId);
+      } else if (question.type === 'dropdown-pair') {
+        bindDropdownPairHandlers(question);
+      } else {
+        bindButtonHandlers();
+      }
+
+      updateNavigation();
+      focusCurrentView();
+    }
+
+    function renderResult(resultId) {
+      var result = results[resultId];
+      if (!result) return;
+
+      state.currentQuestion = 'result';
+      state.lastResultId = resultId;
+
+      var breadcrumbLabel = getBreadcrumbLabel(result);
+
+      if (state.breadcrumbPath[state.breadcrumbPath.length - 1] !== breadcrumbLabel) {
+        state.breadcrumbPath = state.breadcrumbPath.concat([breadcrumbLabel]);
+      }
+
+      var overviewHtml = result.overview
+        ? '<p class="result-overview">' + result.overview + '</p>'
+        : '';
+
+      var footnoteHtml = result.footnote
+        ? '<div class="footnote">' + result.footnote + '</div>'
+        : '';
+
+      var warningHtml = result.warning
+        ? '<div class="warning-box"><h4>' + escapeHtml(result.warning.title) + '</h4><p>' + escapeHtml(result.warning.text) + '</p></div>'
+        : '';
+
+      var sections = result.sections || [];
+      var dataServiceSection = findSection(sections, 'service-config', 'dataService');
+      var computeServiceSection = findSection(sections, 'service-config', 'computeService');
+      var selectedDataConfig = dataServiceSection
+        ? findServiceConfig(dataServiceSection.configs, state.context.dataService)
+        : null;
+      var selectedComputeConfig = computeServiceSection
+        ? findServiceConfig(computeServiceSection.configs, state.context.computeService)
+        : null;
+      var inlineWarnings = []
+        .concat(extractFitWarnings(selectedDataConfig ? selectedDataConfig.items : []))
+        .concat(extractFitWarnings(selectedComputeConfig ? selectedComputeConfig.items : []));
+      var platformWarnings = inlineWarnings;
+
+      var docsHtml = isRenderOptionEnabled('showDocsSection', true) && result.docs && result.docs.length
+        ? '<div class="result-section"><h3>Documentation</h3><div class="doc-list">' +
+          result.docs.map(function (doc) {
+            return '<a href="' + doc.url + '" target="_blank" rel="noopener noreferrer">' +
+              escapeHtml(doc.label) + ' <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span></a>';
+          }).join('') + '</div></div>'
+        : '';
+
+      var addConsHtml = result.additionalConsiderations
+        ? '<div class="additional-considerations"><h4>Additional Considerations</h4><p>' +
+          result.additionalConsiderations + '</p></div>'
+        : '';
+      var contactHtml = isRenderOptionEnabled('showContactSection', true)
+        ? renderContactSection(result)
+        : '';
+
+      var sectionsHtml = renderSections(sections, result, platformWarnings);
+      var copyBlocksHtml = renderCopyBlocks(result.copyBlocks);
+
+      contentEl.innerHTML =
+        '<div id="result-' + resultId + '" class="result-card" role="article" aria-labelledby="result-title-' +
+          resultId + '">' +
+          '<div class="result-header">' +
+            '<div class="service-icon">' + escapeHtml(result.icon) + '</div>' +
+            '<div class="service-title-group">' +
+              '<h2 id="result-title-' + resultId + '">' + escapeHtml(result.title) + '</h2>' +
+              '<span class="badge ' + result.badge.className + '">' + escapeHtml(result.badge.text) + '</span>' +
+            '</div>' +
+          '</div>' +
+
+          renderNoteBox(result.infoNote) +
+          overviewHtml +
+          footnoteHtml +
+          warningHtml +
+
+          sectionsHtml +
+          copyBlocksHtml +
+
+          '<div class="tech-tags">' +
+          (result.techTags || []).map(function (tag) { return '<span class="tech-tag">' + escapeHtml(tag) + '</span>'; }).join('') +
+          '</div>' +
+
+          renderSupportSection(result) +
+          renderResponsibilitySection(result) +
+          docsHtml +
+
+          addConsHtml +
+
+          contactHtml +
+
+          '<div class="action-buttons">' +
+            (isRenderOptionEnabled('showDocsButton', true) && result.docs && result.docs.length
+              ? '<a class="btn btn-primary" href="' + result.docs[0].url + '" target="_blank" rel="noopener noreferrer">View Documentation <span aria-hidden="true">↗</span><span class="sr-only">(opens in new tab)</span></a>'
+              : '') +
+            (isRenderOptionEnabled('showCopyLinkButton', true)
+              ? '<button class="btn btn-secondary" id="copy-link-btn">\uD83D\uDD17 Copy Link</button>'
+              : '') +
+            '<button class="btn btn-secondary" id="restart-result-btn">Start Over</button>' +
+          '</div>' +
+        '</div>';
+
+      var restartResultBtn = document.getElementById('restart-result-btn');
+      if (restartResultBtn) {
+        restartResultBtn.addEventListener('click', restart);
+      }
+
+      bindCopyBlockButtons();
+
+      // Feature 10: Copy link button
+      var copyLinkBtn = document.getElementById('copy-link-btn');
+      if (copyLinkBtn) {
+        copyLinkBtn.addEventListener('click', function () {
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(window.location.href).then(function () {
+              copyLinkBtn.textContent = '\u2713 Copied!';
+              setTimeout(function () { copyLinkBtn.textContent = '\uD83D\uDD17 Copy Link'; }, 2000);
+            });
+          } else {
+            // Fallback for Confluence iframes where clipboard API may be blocked
+            var temp = document.createElement('textarea');
+            temp.value = window.location.href;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            copyLinkBtn.textContent = '\u2713 Copied!';
+            setTimeout(function () { copyLinkBtn.textContent = '\uD83D\uDD17 Copy Link'; }, 2000);
+          }
+        });
+      }
+
+      updateNavigation();
+      focusCurrentView();
+    }
+
+    // silent=true skips hash write (used during deep link replay)
+    function selectOption(nextId, optionText, silent) {
+      var resolvedNextId = resolveDynamicTarget(nextId);
+      var resolvedResultId = resolveResultId(resolvedNextId);
+      var resolvedQuestionId = resolveQuestionId(resolvedNextId);
+
+      var currentQuestion = questions[state.currentQuestion];
+      if (currentQuestion && currentQuestion.type === 'dropdown-pair') {
+        var textParts = String(optionText || '').split(';');
+        var leftLabel = textParts[0] ? textParts[0].split(':').slice(1).join(':').trim() : '';
+        var rightLabel = textParts[1] ? textParts[1].split(':').slice(1).join(':').trim() : '';
+        var leftRange = (currentQuestion.dropdownLeftRanges || []).find(function (range) {
+          return normalizeKey(range.label) === normalizeKey(leftLabel);
+        });
+        var rightRange = (currentQuestion.dropdownRightRanges || []).find(function (range) {
+          return normalizeKey(range.label) === normalizeKey(rightLabel);
+        });
+        if (leftRange && rightRange) {
+          var tierMatrix = currentQuestion.dropdownTierMatrix || {};
+          var tierValue = tierMatrix[leftRange.bucket] ? tierMatrix[leftRange.bucket][rightRange.bucket] : null;
+          state.context.tier = tierValue || state.context.tier;
+          state.context.rtoBucket = leftRange.label || state.context.rtoBucket;
+          state.context.rpoBucket = rightRange.label || state.context.rpoBucket;
+        }
+      }
+
+      if (!resolvedResultId && !resolvedQuestionId) {
+        if ((nextId || '').includes('{tier}') && !state.context.tier) {
+          alert('Recovery tier is not set yet. Please complete the RTO/RPO selection first.');
+          return;
+        }
+        var message = 'Missing target id: ' + nextId;
+        console.error(message);
+        contentEl.innerHTML =
+          '<div class="warning-box">' +
+            '<h4>Navigation Error</h4>' +
+            '<p>Missing target: <code>' + escapeHtml(nextId) + '</code>. Please contact the tree maintainer.</p>' +
+            '<button class="btn btn-secondary" id="restart-error-btn">Start Over</button>' +
+          '</div>';
+        var restartErrorBtn = document.getElementById('restart-error-btn');
+        if (restartErrorBtn) {
+          restartErrorBtn.addEventListener('click', restart);
+        }
+        return;
+      }
+
+      if (currentQuestion && currentQuestion.contextCapture && currentQuestion.contextCapture.key) {
+        var captureFrom = currentQuestion.contextCapture.from || 'optionText';
+        if (captureFrom === 'optionText') {
+          state.context[currentQuestion.contextCapture.key] = optionText;
+        }
+      }
+
+      state.history.push({
+        questionId: state.currentQuestion,
+        nextId: resolvedResultId || resolvedQuestionId,
+        breadcrumbPath: state.breadcrumbPath.slice(),
+        context: Object.assign({}, state.context)
+      });
+
+      state.breadcrumbPath = state.breadcrumbPath.concat([optionText]);
+
+      if (resolvedResultId) {
+        renderResult(resolvedResultId);
+      } else {
+        renderQuestion(resolvedQuestionId);
+      }
+
+      if (!silent) {
+        writeHash();
+      }
+    }
+
+    function goBack() {
+      if (state.history.length === 0) return;
+      var previous = state.history.pop();
+      state.breadcrumbPath = previous.breadcrumbPath;
+      state.context = Object.assign({}, previous.context || {});
+      renderQuestion(previous.questionId);
+      writeHash();
+    }
+
+    function restart() {
+      if (state.history.length > 1 && !confirm('Start over? Your current progress will be lost.')) {
+        return;
+      }
+      state.currentQuestion = 'q1';
+      state.history = [];
+      state.breadcrumbPath = ['Start'];
+      state.lastResultId = null;
+      state.context = {};
+      renderQuestion('q1');
+      try {
+        history.replaceState(null, '', window.location.pathname);
+      } catch (ignored) {
+        window.location.hash = '';
+      }
+    }
+
+    function updateNavigation() {
+      var progress = progressSteps[state.currentQuestion] || 0;
+      progressEl.style.width = progress + '%';
+      var container = document.querySelector('.progress-container');
+      if (container) {
+        container.setAttribute('aria-valuenow', progress);
+      }
+      breadcrumbsEl.innerHTML = state.breadcrumbPath.map(function (label, index) {
+        var current = index === state.breadcrumbPath.length - 1;
+        return '<li class="breadcrumb-item"' + (current ? ' aria-current="step"' : '') + '>' +
+          escapeHtml(label) +
+          '</li>';
+      }).join('');
+      backBtn.disabled = state.history.length === 0;
+    }
+
+    backBtn.addEventListener('click', goBack);
+    restartBtn.addEventListener('click', restart);
+
+    var validationErrors = validateOptionTargets();
+    if (validationErrors > 0) {
+      var navBar = document.querySelector('.nav-bar');
+      if (navBar) {
+        navBar.insertAdjacentHTML(
+          'afterend',
+          '<div class="warning-box" style="margin-bottom:12px">' +
+            '<h4>Navigation Warning</h4>' +
+            '<p>' + validationErrors + ' broken link(s) detected. Open the browser console for details.</p>' +
+          '</div>'
+        );
+      }
+    }
+
+    // Feature 10: replay from hash or start fresh
+    replayFromHash();
+  </script>
+</body>
+</html>

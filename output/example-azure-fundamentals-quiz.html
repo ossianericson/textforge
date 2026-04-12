@@ -1,0 +1,1192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Azure Fundamentals — Core Concepts Quiz</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #1e1b4b;
+        --bg-strong: #312e81;
+        --card: #ffffff;
+        --ink: #1f2937;
+        --muted: #a5b4fc;
+        --accent: #4f46e5;
+        --accent-strong: #7c3aed;
+        --secondary: #818cf8;
+        --correct: #10b981;
+        --wrong: #ef4444;
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+        --radius: 22px;
+        --transition: 220ms ease;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      button {
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        color: #fff;
+        background: linear-gradient(135deg, #1e1b4b, #312e81, #1e1b4b);
+      }
+
+      .page {
+        min-height: 100vh;
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 20px 14px 50px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .top-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .title-block h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        text-align: center;
+        letter-spacing: 0.3px;
+      }
+
+      .meta {
+        color: #a5b4fc;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-align: center;
+        font-size: 0.78rem;
+      }
+
+      .score-block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .score-text {
+        display: flex;
+        justify-content: space-between;
+        color: #a5b4fc;
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+
+      .progress {
+        height: 8px;
+        background: #312e81;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #a5b4fc, #818cf8);
+        transition: width var(--transition);
+      }
+
+      .view-toggle {
+        display: inline-flex;
+        gap: 8px;
+        background: #312e81;
+        padding: 6px;
+        border-radius: 999px;
+      }
+
+      .view-toggle button {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: transparent;
+        font-weight: 700;
+        cursor: pointer;
+        color: #c4b5fd;
+        transition: var(--transition);
+      }
+
+      .view-toggle button.active {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #fff;
+        box-shadow: 0 10px 18px rgba(79, 70, 229, 0.4);
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      section {
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        color: #e0e7ff;
+      }
+
+      .card-actions,
+      .quiz-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      button.action {
+        border: none;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform var(--transition), box-shadow var(--transition);
+      }
+
+      button.action.secondary {
+        background: #4338ca;
+      }
+
+      button.action:active {
+        transform: scale(0.98);
+      }
+
+      .quiz-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .view-toggle {
+        display: none;
+      }
+
+      .quiz-card {
+        padding: 0;
+        border-radius: var(--radius);
+        background: var(--card);
+        border: 0;
+        display: grid;
+        gap: 0;
+        margin-bottom: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .quiz-card.is-correct {
+        border-color: var(--correct);
+      }
+
+      .quiz-card.is-wrong {
+        border-color: var(--wrong);
+      }
+
+      .question-text {
+        font-weight: 600;
+        font-size: 1rem;
+        line-height: 1.55;
+        color: #fff;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        padding: 22px;
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+        padding: 16px 16px 6px;
+      }
+
+      .option {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        cursor: pointer;
+        width: 100%;
+        text-align: left;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: #374151;
+      }
+
+      .option:disabled {
+        cursor: default;
+      }
+
+      .option .opt-key {
+        min-width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 800;
+        font-size: 0.74rem;
+        margin-top: 1px;
+        background: #e0e7ff;
+        color: #4338ca;
+      }
+
+      .option .opt-text {
+        flex: 1;
+      }
+
+      .option.opt-correct {
+        border-color: #10b981;
+        background: #ecfdf5;
+        color: #065f46;
+      }
+
+      .option.opt-correct .opt-key {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .option.opt-wrong {
+        border-color: #f87171;
+        background: #fff1f2;
+        color: #991b1b;
+      }
+
+      .option.opt-wrong .opt-key {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .option.opt-dim {
+        border-color: #f1f5f9;
+        color: #9ca3af;
+        background: #f8fafc;
+      }
+
+      .option.opt-dim .opt-key {
+        background: #f1f5f9;
+        color: #94a3b8;
+      }
+
+      .quiz-feedback {
+        display: none;
+        margin: 4px 16px 0;
+        padding: 12px 14px;
+        border-radius: 14px;
+        font-size: 0.83rem;
+        line-height: 1.6;
+        color: #4b5563;
+      }
+
+      .quiz-feedback.is-visible {
+        display: block;
+      }
+
+      .quiz-feedback strong {
+        color: var(--ink);
+      }
+
+      .quiz-feedback.is-correct {
+        background: #ecfdf5;
+        border: 1px solid #6ee7b7;
+        color: #065f46;
+      }
+
+      .quiz-feedback.is-wrong {
+        background: #fffbeb;
+        border: 1px solid #fcd34d;
+        color: #7a4a0f;
+      }
+
+      .feedback-label {
+        display: block;
+        font-size: 0.63rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+      }
+
+      .quiz-nav {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: 0;
+        padding: 14px 16px 18px;
+        background: #fff;
+      }
+
+      .quiz-nav #questionCounter {
+        color: #64748b;
+        font-size: 0.78rem;
+        text-align: center;
+      }
+
+      .quiz-nav .action {
+        width: 100%;
+      }
+
+      #quizContainer {
+        margin-bottom: 0;
+      }
+
+      .end-screen {
+        display: none;
+        padding: 28px 20px;
+        border-radius: var(--radius);
+        background: #fff;
+        text-align: center;
+        margin-top: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      .end-screen.is-visible {
+        display: block;
+      }
+
+      .grade-label {
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin: 6px 0 8px;
+      }
+
+      .grade-excellent {
+        color: var(--correct);
+      }
+
+      .grade-good {
+        color: #3b52c4;
+      }
+
+      .grade-pass {
+        color: #b06f14;
+      }
+
+      .grade-study {
+        color: var(--wrong);
+      }
+
+      .result-meter {
+        width: 100%;
+        height: 12px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+        margin: 10px 0 16px;
+      }
+
+      .result-meter-fill {
+        width: 0;
+        height: 100%;
+        transition: width 1000ms ease;
+      }
+
+      .review-title {
+        font-weight: 700;
+        margin: 0 0 8px;
+        text-align: left;
+        color: #475569;
+        font-size: 0.75rem;
+      }
+
+      .review-list {
+        margin: 0 0 18px;
+        padding-left: 0;
+        list-style: none;
+        text-align: left;
+      }
+
+      .review-list li {
+        margin-bottom: 6px;
+        font-size: 0.76rem;
+        color: #6b7280;
+        background: #fff1f2;
+        border-radius: 10px;
+        padding: 7px 11px;
+      }
+
+      #tryAgain {
+        width: 100%;
+      }
+
+      #endTitle {
+        margin: 0;
+        color: #1e293b;
+        font-size: 1.45rem;
+      }
+
+      #endScore {
+        color: #64748b;
+        margin: 4px 0 6px;
+      }
+
+      @media (max-width: 720px) {
+        .quiz-nav {
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="top-bar">
+        <div class="title-block">
+          <h1>Azure Fundamentals — Core Concepts Quiz</h1>
+          <div class="meta">Microsoft Azure • Azure Core Concepts and Governance • Technical</div>
+        </div>
+        <div class="score-block">
+          <div class="score-text">Score: <span id="scoreValue">0</span>/<span id="totalValue">0</span></div>
+          <div class="progress"><span id="scoreBar"></span></div>
+        </div>
+      </header>
+
+      <main>
+        <section id="quizSection">
+          <div class="section-header">
+            <h2>Quiz</h2>
+            <div class="quiz-controls">
+              <div class="quiz-actions">
+                <button class="action secondary" id="resetQuiz" type="button">Try Again</button>
+              </div>
+            </div>
+          </div>
+          <div id="quizContainer"></div>
+          <div class="quiz-nav" id="quizNav">
+            <span id="questionCounter"></span>
+            <button class="action" id="nextQuestion" type="button">Next</button>
+          </div>
+          <div id="endScreen" class="end-screen">
+            <h3 id="endTitle">Great job!</h3>
+            <p id="endScore"></p>
+            <p id="gradeLabel" class="grade-label"></p>
+            <div class="result-meter" aria-hidden="true">
+              <div id="resultMeterFill" class="result-meter-fill"></div>
+            </div>
+            <p id="reviewTitle" class="review-title" hidden>Questions to review:</p>
+            <ul id="reviewList" class="review-list" hidden></ul>
+            <button class="action" id="tryAgain" type="button">Try Again</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const quizData = {
+  "title": "Azure Fundamentals — Core Concepts Quiz",
+  "grade": "Technical",
+  "subject": "Microsoft Azure",
+  "topic": "Azure Core Concepts and Governance",
+  "studyCards": [
+    {
+      "id": "azure-regions-and-availability-zones",
+      "title": "Azure Regions and Availability Zones",
+      "front": "What is the difference between an Azure Region and an Availability Zone?",
+      "back": "A Region is a geographic area containing one or more datacentres. An Availability Zone is a physically separate datacentre within a region with independent power, cooling, and networking. Deploying across Availability Zones protects against single-datacentre failures. Not all regions have Availability Zones.",
+      "hint": "Region = geography. Availability Zone = independent building inside that geography."
+    },
+    {
+      "id": "resource-groups",
+      "title": "Resource Groups",
+      "front": "What is an Azure Resource Group and what is its primary purpose?",
+      "back": "A Resource Group is a logical container that holds related Azure resources for a solution. It is used to manage, deploy, and control access to resources as a unit. Every resource must belong to exactly one Resource Group. Deleting a Resource Group deletes all resources inside it.",
+      "hint": "Think of it as a folder — but deleting the folder deletes everything in it."
+    },
+    {
+      "id": "azure-subscriptions",
+      "title": "Azure Subscriptions",
+      "front": "What is an Azure Subscription and how does it relate to billing?",
+      "back": "A Subscription is an agreement with Microsoft to use Azure services and the billing boundary for those services. All costs for resources within a subscription are billed together. A single Azure AD tenant can have multiple subscriptions. Subscriptions are also used as a management and access control boundary.",
+      "hint": "One bill = one subscription. One company can have many subscriptions."
+    },
+    {
+      "id": "azure-rbac",
+      "title": "Azure RBAC",
+      "front": "What is Azure Role-Based Access Control and what are the three most important built-in roles?",
+      "back": "RBAC is the authorisation system used to control who can do what with Azure resources. The three core built-in roles are: Owner (full access including the ability to delegate access), Contributor (full access except cannot grant access to others), and Reader (view-only access). Roles are assigned to a security principal at a specific scope.",
+      "hint": "Owner > Contributor > Reader. Contributor cannot manage permissions."
+    },
+    {
+      "id": "azure-policy",
+      "title": "Azure Policy",
+      "front": "What does Azure Policy do and how is it different from RBAC?",
+      "back": "Azure Policy enforces organisational rules on resources — for example, requiring all resources to be in approved regions or mandating specific tags. RBAC controls what actions users can perform. Policy controls what resource configurations are permitted regardless of who deploys them. Both work together: RBAC governs identity, Policy governs resource state.",
+      "hint": "RBAC = who can act. Policy = what is allowed to exist."
+    },
+    {
+      "id": "management-groups",
+      "title": "Management Groups",
+      "front": "What is an Azure Management Group and when would you use one?",
+      "back": "A Management Group is a container above subscriptions that allows you to apply governance across multiple subscriptions at once. Policies and RBAC assignments at the Management Group scope are inherited by all child subscriptions. Use them when you manage multiple subscriptions and need consistent governance without repeating assignments in each subscription.",
+      "hint": "Management Group is above Subscription. Governance flows down the hierarchy."
+    },
+    {
+      "id": "azure-ad-vs-azure-ad-domain-services",
+      "title": "Azure AD vs Azure AD Domain Services",
+      "front": "What is the difference between Azure Active Directory and Azure AD Domain Services?",
+      "back": "Azure AD is a cloud-native identity platform for authenticating users to cloud applications using modern protocols such as OAuth2, OIDC, and SAML. Azure AD DS is a managed domain service that provides legacy on-premises Active Directory features — LDAP, Kerberos, NTLM, domain join — for workloads that cannot use Azure AD directly. Azure AD DS is not a replacement for Azure AD; it is a bridge for legacy workloads.",
+      "hint": "Azure AD = cloud identity. Azure AD DS = legacy domain features in the cloud."
+    },
+    {
+      "id": "resource-tags",
+      "title": "Resource Tags",
+      "front": "What are Azure resource tags and why are they important for cost management?",
+      "back": "Tags are name/value metadata pairs attached to Azure resources and Resource Groups. They do not affect resource behaviour. Common uses: cost allocation by team or project, environment identification, and automation targeting. Azure Cost Management can group and filter costs by tag.",
+      "hint": "Tags = sticky labels. No label = no cost visibility per team."
+    }
+  ],
+  "quizQuestions": [
+    {
+      "id": "Q1",
+      "question": "A support analyst needs to inspect resources and read configuration in a production subscription but must not make any changes. Which built-in role is the best fit?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Owner"
+        },
+        {
+          "key": "B",
+          "text": "Contributor"
+        },
+        {
+          "key": "C",
+          "text": "Reader"
+        },
+        {
+          "key": "D",
+          "text": "User Access Administrator"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Reader provides view-only access to Azure resources and settings. Contributor and Owner allow write operations, which violates least privilege for this scenario. User Access Administrator manages permissions rather than operational resource access.",
+      "topicTag": "rbac"
+    },
+    {
+      "id": "Q2",
+      "question": "A platform team wants to enforce that every new resource includes a CostCentre tag and to add it automatically from the parent Resource Group when missing. What should they use?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure RBAC custom role with tag permissions"
+        },
+        {
+          "key": "B",
+          "text": "Azure Policy with a Modify effect to inherit tag from Resource Group"
+        },
+        {
+          "key": "C",
+          "text": "Management Group lock settings"
+        },
+        {
+          "key": "D",
+          "text": "Azure Advisor recommendations"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Azure Policy with a Modify effect can append or inherit required tags at deployment and remediation time. RBAC controls who can perform actions, not resource compliance behavior. Advisor is advisory only and cannot enforce policy.",
+      "topicTag": "policy"
+    },
+    {
+      "id": "Q3",
+      "question": "A company has many subscriptions and wants one central place to assign policy and RBAC so all child subscriptions inherit settings. Which Azure construct should be used?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Resource Group"
+        },
+        {
+          "key": "B",
+          "text": "Availability Zone"
+        },
+        {
+          "key": "C",
+          "text": "Management Group"
+        },
+        {
+          "key": "D",
+          "text": "Azure AD B2C directory"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Management Groups sit above subscriptions and support inheritance for policy and RBAC assignments. Resource Groups are below subscriptions and cannot govern multiple subscriptions centrally.",
+      "topicTag": "management-groups"
+    },
+    {
+      "id": "Q4",
+      "question": "Which object is the primary billing boundary in Azure?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Subscription"
+        },
+        {
+          "key": "B",
+          "text": "Resource Group"
+        },
+        {
+          "key": "C",
+          "text": "Management Group"
+        },
+        {
+          "key": "D",
+          "text": "Virtual Network"
+        }
+      ],
+      "answer": "A",
+      "explanation": "A subscription is the billing and access boundary where costs are consolidated. Resource Groups and Management Groups are management constructs but not billing units.",
+      "topicTag": "subscriptions"
+    },
+    {
+      "id": "Q5",
+      "question": "A production Storage Account must be protected against accidental deletion, but writes must continue normally. Which lock type should be applied?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "ReadOnly lock"
+        },
+        {
+          "key": "B",
+          "text": "Delete lock"
+        },
+        {
+          "key": "C",
+          "text": "Subscription lock"
+        },
+        {
+          "key": "D",
+          "text": "CanNotDelete role assignment"
+        }
+      ],
+      "answer": "B",
+      "explanation": "A Delete lock blocks deletion while still allowing reads and writes. ReadOnly blocks write operations and can disrupt application behavior.",
+      "topicTag": "resource-locks"
+    },
+    {
+      "id": "Q6",
+      "question": "A workload must tolerate failure of one datacentre within a single region while keeping low-latency regional traffic. What is the best deployment approach?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Use two Resource Groups in the same region"
+        },
+        {
+          "key": "B",
+          "text": "Deploy across two Availability Zones in the same region"
+        },
+        {
+          "key": "C",
+          "text": "Deploy in one zone with autoscaling"
+        },
+        {
+          "key": "D",
+          "text": "Use only geo-redundant backup"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Availability Zones are physically separate datacentres in a region and are designed for intra-region datacentre fault tolerance. Resource Groups are logical and provide no physical resilience by themselves.",
+      "topicTag": "availability-zones"
+    },
+    {
+      "id": "Q7",
+      "question": "In disaster recovery planning, what do RTO and RPO represent?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "RTO is acceptable data loss; RPO is acceptable downtime"
+        },
+        {
+          "key": "B",
+          "text": "RTO is time to recover service; RPO is acceptable data loss point"
+        },
+        {
+          "key": "C",
+          "text": "RTO is retention period; RPO is backup size"
+        },
+        {
+          "key": "D",
+          "text": "RTO is runbook order; RPO is process owner"
+        }
+      ],
+      "answer": "B",
+      "explanation": "RTO (Recovery Time Objective) is how quickly services must be restored. RPO (Recovery Point Objective) is the maximum acceptable amount of data loss measured as a point in time.",
+      "topicTag": "disaster-recovery"
+    },
+    {
+      "id": "Q8",
+      "question": "A business can tolerate at most 30 minutes of data loss during an outage. Which statement is correct?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "RTO must be 30 minutes or less"
+        },
+        {
+          "key": "B",
+          "text": "RPO must be 30 minutes or less"
+        },
+        {
+          "key": "C",
+          "text": "Backup retention must be 30 days"
+        },
+        {
+          "key": "D",
+          "text": "At least 30 replicas are required"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Data loss tolerance maps to RPO, not RTO. If the business can only lose 30 minutes of data, the solution must achieve an RPO of 30 minutes or better.",
+      "topicTag": "disaster-recovery"
+    },
+    {
+      "id": "Q9",
+      "question": "A user has Contributor on a Resource Group and attempts to grant another user Reader on the same scope. What is expected?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "It succeeds because Contributor can do all management tasks"
+        },
+        {
+          "key": "B",
+          "text": "It fails because Contributor cannot create role assignments"
+        },
+        {
+          "key": "C",
+          "text": "It succeeds only at subscription scope"
+        },
+        {
+          "key": "D",
+          "text": "It fails unless MFA is disabled"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Contributor can manage resources but cannot delegate access. Role assignment requires permissions such as Microsoft.Authorization/roleAssignments/write, available to Owner or specifically delegated identities.",
+      "topicTag": "rbac"
+    },
+    {
+      "id": "Q10",
+      "question": "A deny policy is assigned at Management Group scope. An Owner in a child subscription tries to deploy a disallowed resource. What happens?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Deployment succeeds because Owner overrides policy"
+        },
+        {
+          "key": "B",
+          "text": "Deployment fails only if Reader role is also assigned"
+        },
+        {
+          "key": "C",
+          "text": "Deployment fails because policy deny applies regardless of RBAC role"
+        },
+        {
+          "key": "D",
+          "text": "Deployment succeeds but is marked non-compliant later"
+        }
+      ],
+      "answer": "C",
+      "explanation": "RBAC and Policy are separate controls. RBAC authorizes actions, while Policy evaluates resource state compliance. A deny effect blocks non-compliant deployments even for Owner.",
+      "topicTag": "policy"
+    },
+    {
+      "id": "Q11",
+      "question": "An engineer deletes a Resource Group that contains a SQL Database, Key Vault, and App Service. No locks exist. What is the result?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Only stateless resources are deleted"
+        },
+        {
+          "key": "B",
+          "text": "Azure asks for per-resource confirmation and keeps databases"
+        },
+        {
+          "key": "C",
+          "text": "All resources in the group are deleted"
+        },
+        {
+          "key": "D",
+          "text": "Only resources created in last 24 hours are deleted"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Deleting a Resource Group deletes all contained resources unless protective controls like locks are in place. This behavior is by design and is a common operational risk.",
+      "topicTag": "resource-groups"
+    },
+    {
+      "id": "Q12",
+      "question": "A legacy application requires LDAP and Kerberos in Azure but the team does not want to operate domain controllers. Which service best fits?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Active Directory App Registrations"
+        },
+        {
+          "key": "B",
+          "text": "Azure AD Domain Services"
+        },
+        {
+          "key": "C",
+          "text": "Azure Policy"
+        },
+        {
+          "key": "D",
+          "text": "Azure Bastion"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Azure AD Domain Services provides managed domain capabilities including LDAP, Kerberos, and NTLM without managing domain controller VMs.",
+      "topicTag": "identity"
+    },
+    {
+      "id": "Q13",
+      "question": "An architecture target requires very low RPO for a mission-critical database and continued service during regional failure. Which pattern is most appropriate?",
+      "type": "mcq",
+      "options": [
+        {
+          "key": "A",
+          "text": "Single-region deployment with daily backups"
+        },
+        {
+          "key": "B",
+          "text": "Multi-zone deployment only"
+        },
+        {
+          "key": "C",
+          "text": "Cross-region replication with tested failover runbooks"
+        },
+        {
+          "key": "D",
+          "text": "Resource locks plus tagging policy"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Very low RPO combined with regional outage resilience typically requires cross-region replication and operationally tested failover. Zone-only designs protect against datacentre failures but not full regional outages.",
+      "topicTag": "disaster-recovery"
+    }
+  ],
+  "summary": [
+    "Reader is the least-privilege role for view-only operational access",
+    "Azure Policy Modify can enforce and inherit required tags at scale",
+    "Management Groups provide inheritance for governance across many subscriptions",
+    "Subscriptions are the primary billing boundary in Azure",
+    "Delete locks protect resources from accidental removal without blocking normal writes",
+    "Availability Zones protect against datacentre failure in a single region",
+    "RTO is recovery time target; RPO is acceptable data loss point",
+    "Data loss tolerance requirements map directly to RPO targets",
+    "Contributor cannot grant access to other identities",
+    "Policy deny effects are enforced even when the deployer has Owner role",
+    "Deleting a Resource Group removes all contained resources unless protected",
+    "Cross-region replication is required when regional failure resilience and low RPO are both required"
+  ]
+};
+      const SPEC = quizData;
+
+      const scoreValue = document.getElementById('scoreValue');
+      const totalValue = document.getElementById('totalValue');
+      const scoreBar = document.getElementById('scoreBar');
+      const quizSection = document.getElementById('quizSection');
+      const quizContainer = document.getElementById('quizContainer');
+      const quizNav = document.getElementById('quizNav');
+      const questionCounter = document.getElementById('questionCounter');
+      const nextQuestionButton = document.getElementById('nextQuestion');
+      const endScreen = document.getElementById('endScreen');
+      const endTitle = document.getElementById('endTitle');
+      const endScore = document.getElementById('endScore');
+      const gradeLabel = document.getElementById('gradeLabel');
+      const resultMeterFill = document.getElementById('resultMeterFill');
+      const reviewTitle = document.getElementById('reviewTitle');
+      const reviewList = document.getElementById('reviewList');
+      const resetQuizButton = document.getElementById('resetQuiz');
+      const tryAgainButton = document.getElementById('tryAgain');
+
+      let currentIndex = 0;
+      let score = 0;
+      let wrong = [];
+      const answers = {};
+
+      totalValue.textContent = String(SPEC.quizQuestions.length);
+
+      function updateScoreUI() {
+        scoreValue.textContent = String(score);
+        const total = SPEC.quizQuestions.length || 1;
+        const percent = Math.round((score / total) * 100);
+        scoreBar.style.width = `${percent}%`;
+      }
+
+
+      function lockOptionButtons(optionsContainer) {
+        optionsContainer.querySelectorAll('.option').forEach((button) => {
+          button.onclick = null;
+          button.disabled = true;
+        });
+      }
+
+      function buildOptions(question, questionIndex) {
+        const container = document.createElement('div');
+        container.className = 'options';
+        question.options.forEach((option) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'option';
+          button.dataset.key = option.key;
+
+          const key = document.createElement('span');
+          key.className = 'opt-key';
+          key.textContent = option.key;
+
+          const text = document.createElement('span');
+          text.className = 'opt-text';
+          text.textContent = option.text;
+
+          button.appendChild(key);
+          button.appendChild(text);
+          container.appendChild(button);
+
+          button.onclick = () => {
+            if (answers[questionIndex]) {
+              return;
+            }
+            const selectedKey = option.key;
+            const correct = selectedKey === question.answer;
+            answers[questionIndex] = { selected: selectedKey, correct, checked: true };
+            if (correct) {
+              score += 1;
+            } else {
+              wrong.push(questionIndex);
+            }
+
+            lockOptionButtons(container);
+
+            container.querySelectorAll('.option').forEach((optionButton) => {
+              const keySpan = optionButton.querySelector('.opt-key');
+              const optionKey = optionButton.dataset.key;
+              if (optionKey === question.answer) {
+                optionButton.classList.add('opt-correct');
+                keySpan.textContent = '✓';
+              } else if (!correct && optionKey === selectedKey) {
+                optionButton.classList.add('opt-wrong');
+                keySpan.textContent = '✗';
+              } else {
+                optionButton.classList.add('opt-dim');
+              }
+            });
+
+            const feedback = container.parentElement.querySelector('.quiz-feedback');
+            feedback.classList.add('is-visible');
+            feedback.classList.add(correct ? 'is-correct' : 'is-wrong');
+            const wrongLabel = `Wrong - correct answer is ${question.answer}`;
+            const label = correct ? 'Correct!' : wrongLabel;
+            feedback.innerHTML = `<span class="feedback-label">${label}</span>${question.explanation}`;
+
+            if (currentIndex === questionIndex) {
+              nextQuestionButton.disabled = false;
+              const isLast = currentIndex === SPEC.quizQuestions.length - 1;
+              nextQuestionButton.textContent = isLast ? 'See results' : 'Next question';
+            }
+
+            updateScoreUI();
+          };
+        });
+        return container;
+      }
+
+      function renderSingleQuestion() {
+        quizContainer.innerHTML = '';
+        endScreen.classList.remove('is-visible');
+        const question = SPEC.quizQuestions[currentIndex];
+        if (!question) {
+          return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        const prompt = document.createElement('div');
+        prompt.className = 'question-text';
+        prompt.textContent = question.question;
+
+        const state = answers[currentIndex];
+        const options = buildOptions(question, currentIndex);
+
+        const feedback = document.createElement('div');
+        feedback.className = 'quiz-feedback';
+
+        if (state?.checked) {
+          feedback.classList.add('is-visible');
+          feedback.classList.add(state.correct ? 'is-correct' : 'is-wrong');
+          const wrongLabel = `Wrong - correct answer is ${question.answer}`;
+          const label = state.correct ? 'Correct!' : wrongLabel;
+          feedback.innerHTML = `<span class="feedback-label">${label}</span>${question.explanation}`;
+          lockOptionButtons(options);
+          options.querySelectorAll('.option').forEach((optionButton) => {
+            const keySpan = optionButton.querySelector('.opt-key');
+            const key = optionButton.dataset.key;
+            if (key === question.answer) {
+              optionButton.classList.add('opt-correct');
+              keySpan.textContent = '✓';
+            } else if (!state.correct && key === state.selected) {
+              optionButton.classList.add('opt-wrong');
+              keySpan.textContent = '✗';
+            } else {
+              optionButton.classList.add('opt-dim');
+            }
+          });
+        }
+
+        card.appendChild(prompt);
+        card.appendChild(options);
+        card.appendChild(feedback);
+        quizContainer.appendChild(card);
+        questionCounter.textContent = `Question ${currentIndex + 1} of ${SPEC.quizQuestions.length}`;
+        quizNav.style.display = 'flex';
+        nextQuestionButton.disabled = !state?.checked;
+        if (!state?.checked) {
+          nextQuestionButton.textContent = 'Choose an answer';
+        } else {
+          const isLast = currentIndex === SPEC.quizQuestions.length - 1;
+          nextQuestionButton.textContent = isLast ? 'See results' : 'Next question';
+        }
+      }
+
+      function renderQuiz() {
+        renderSingleQuestion();
+      }
+
+      function showEndScreen() {
+        const total = SPEC.quizQuestions.length || 1;
+        const scorePercent = Math.round((score / total) * 100);
+        let emoji = '🔁';
+        let message = 'Study more and try again!';
+        let className = 'grade-study';
+
+        if (scorePercent >= 90) {
+          emoji = '🏆';
+          message = 'Excellent!';
+          className = 'grade-excellent';
+        } else if (scorePercent >= 70) {
+          emoji = '⭐';
+          message = 'Well done!';
+          className = 'grade-good';
+        } else if (scorePercent >= 50) {
+          emoji = '📘';
+          message = 'Pass - keep practising!';
+          className = 'grade-pass';
+        }
+
+        endTitle.textContent = 'Results';
+        endScore.textContent = `Final score: ${score} / ${total} (${scorePercent}%)`;
+        gradeLabel.className = `grade-label ${className}`;
+        gradeLabel.textContent = `${emoji} ${message}`;
+
+        resultMeterFill.style.transition = 'none';
+        resultMeterFill.style.width = '0%';
+        if (scorePercent >= 70) {
+          resultMeterFill.style.background = 'linear-gradient(90deg, #2e9d61, #56c684)';
+        } else if (scorePercent >= 50) {
+          resultMeterFill.style.background = 'linear-gradient(90deg, #d79a3a, #efbf69)';
+        } else {
+          resultMeterFill.style.background = 'linear-gradient(90deg, #d94b4b, #ef7f7f)';
+        }
+        setTimeout(() => {
+          resultMeterFill.style.transition = 'width 1000ms ease';
+          resultMeterFill.style.width = `${scorePercent}%`;
+        }, 60);
+
+        reviewList.innerHTML = '';
+        if (wrong.length > 0) {
+          reviewTitle.hidden = false;
+          reviewList.hidden = false;
+          wrong.forEach((questionIndex) => {
+            const item = document.createElement('li');
+            const questionText = SPEC.quizQuestions[questionIndex].question || '';
+            const trimmed = questionText.length > 60 ? `${questionText.slice(0, 60)}...` : questionText;
+            item.textContent = `Q${questionIndex + 1}: ${trimmed}`;
+            reviewList.appendChild(item);
+          });
+        } else {
+          reviewTitle.hidden = true;
+          reviewList.hidden = true;
+        }
+
+        endScreen.classList.add('is-visible');
+      }
+
+      function resetQuiz() {
+        Object.keys(answers).forEach((key) => {
+          delete answers[key];
+        });
+        currentIndex = 0;
+        score = 0;
+        wrong = [];
+        reviewList.innerHTML = '';
+        reviewTitle.hidden = true;
+        reviewList.hidden = true;
+        resultMeterFill.style.transition = 'none';
+        resultMeterFill.style.width = '0%';
+        updateScoreUI();
+        renderQuiz();
+        endScreen.classList.remove('is-visible');
+      }
+
+      nextQuestionButton.addEventListener('click', () => {
+        if (nextQuestionButton.disabled) {
+          return;
+        }
+        if (currentIndex < SPEC.quizQuestions.length - 1) {
+          currentIndex += 1;
+          renderSingleQuestion();
+          return;
+        }
+        showEndScreen();
+      });
+
+      resetQuizButton.addEventListener('click', resetQuiz);
+      tryAgainButton.addEventListener('click', resetQuiz);
+      quizSection.hidden = false;
+      renderQuiz();
+      updateScoreUI();
+    </script>
+  </body>
+</html>

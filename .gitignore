@@ -4,9 +4,6 @@ node_modules/
 # TypeScript build output
 dist/
 
-# Compiled HTML output
-output/
-
 # Internal staging copies
 repo-check-stage/
 
