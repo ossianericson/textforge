@@ -1,0 +1,18 @@
+# Rust build performance configuration
+# Optimises incremental development builds on Windows (x86_64-pc-windows-msvc).
+# Dependencies compile at opt-level 2 (compiled once, cached).
+# Application code compiles at opt-level 0 (fast recompile on every change).
+# rust-lld is faster than the default MSVC linker for debug builds.
+# debug = 1 writes line-table-only debuginfo instead of full DWARF,
+# reducing link time without losing useful stack traces.
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld"
+
+[profile.dev]
+debug = 1
+opt-level = 0
+incremental = true
+
+[profile.dev.package."*"]
+opt-level = 2
